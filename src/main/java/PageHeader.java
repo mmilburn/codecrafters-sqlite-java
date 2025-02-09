@@ -1,35 +1,35 @@
 import java.nio.ByteBuffer;
 
 public class PageHeader {
-    private final byte pageType;
+    private final PageType pageType;
     private final short firstFreeBlock;
     private final short cellsCount;
-    private final short cellAreaStart;
+    private final short cellContentAreaStart;
     private final byte fragmentedFreeBytesCount;
     private final int rightmostPointer;
 
-    private PageHeader(byte pageType, short firstFreeBlock, short cellsCount, short cellAreaStart, byte fragmentedFreeBytesCount, int rightmostPointer) {
+    private PageHeader(PageType pageType, short firstFreeBlock, short cellsCount, short cellAreaStart, byte fragmentedFreeBytesCount, int rightmostPointer) {
         this.pageType = pageType;
         this.firstFreeBlock = firstFreeBlock;
         this.cellsCount = cellsCount;
-        this.cellAreaStart = cellAreaStart;
+        this.cellContentAreaStart = cellAreaStart;
         this.fragmentedFreeBytesCount = fragmentedFreeBytesCount;
         this.rightmostPointer = rightmostPointer;
     }
 
     public static PageHeader fromByteBuffer(ByteBuffer data) {
-        byte pageType = data.get();
+        PageType pageType = PageType.fromByteBuffer(data);
         return new PageHeader(
                 pageType,
                 data.getShort(),
                 data.getShort(),
                 data.getShort(),
                 data.get(),
-                pageType == 0x02 || pageType == 0x05 ? data.getInt() : -1
+                pageType.isInterior() ? data.getInt() : -1
         );
     }
 
-    public byte getPageType() {
+    public PageType getPageType() {
         return pageType;
     }
 
@@ -41,8 +41,8 @@ public class PageHeader {
         return cellsCount;
     }
 
-    public short getCellAreaStart() {
-        return cellAreaStart;
+    public int getCellContentAreaStart() {
+        return cellContentAreaStart == 0 ? 65536 : Short.toUnsignedInt(cellContentAreaStart);
     }
 
     public byte getFragmentedFreeBytesCount() {
