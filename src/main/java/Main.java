@@ -1,7 +1,8 @@
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 public class Main {
     public static void main(String[] args) {
@@ -15,25 +16,22 @@ public class Main {
 
         switch (command) {
             case ".dbinfo" -> {
-                try {
-                    FileInputStream databaseFile = new FileInputStream(new File(databaseFilePath));
-
-                    databaseFile.skip(16); // Skip the first 16 bytes of the header
-                    byte[] pageSizeBytes = new byte[2]; // The following 2 bytes are the page size
-                    databaseFile.read(pageSizeBytes);
-                    short pageSizeSigned = ByteBuffer.wrap(pageSizeBytes).getShort();
-                    int pageSize = Short.toUnsignedInt(pageSizeSigned);
-
-                    // You can use print statements as follows for debugging, they'll be visible when running tests.
-                    System.err.println("Logs from your program will appear here!");
-
-                    // Uncomment this block to pass the first stage
-                    System.out.println("database page size: " + pageSize);
-                } catch (IOException e) {
-                    System.out.println("Error reading file: " + e.getMessage());
-                }
+                SQLiteHeader header = SQLiteHeader.fromByteBuffer(getByteBufferFromFile(databaseFilePath));
+                System.out.println("database page size: " + header.getPageSize());
+                System.out.println("number of tables: ");
             }
-            default -> System.out.println("Missing or invalid command passed: " + command);
+            default -> System.err.println("Missing or invalid command passed: " + command);
         }
+    }
+
+    private static ByteBuffer getByteBufferFromFile(String filePath) {
+        Path path = Path.of(filePath);
+        ByteBuffer buffer = ByteBuffer.wrap(new byte[]{0});
+        try (FileChannel channel = FileChannel.open(path, StandardOpenOption.READ)) {
+            buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
+        } catch (IOException ioNo) {
+            System.err.println("Error reading file: " + ioNo.getMessage());
+        }
+        return buffer;
     }
 }
