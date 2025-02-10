@@ -37,8 +37,8 @@ public class PageHeader {
         return firstFreeBlock;
     }
 
-    public short getCellsCount() {
-        return cellsCount;
+    public int getCellsCount() {
+        return Short.toUnsignedInt(cellsCount);
     }
 
     public int getCellContentAreaStart() {

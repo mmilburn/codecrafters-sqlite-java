@@ -3,6 +3,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
@@ -13,10 +14,12 @@ public class Main {
 
         String databaseFilePath = args[0];
         String command = args[1];
+        List<BTreePage> pages = PageListFactory.fromByteBuffer(getByteBufferFromFile(databaseFilePath));
+        InitialPage firstPage = ((InitialPage) pages.getFirst());
+        SQLiteHeader header = firstPage.getSqLiteHeader();
 
         switch (command) {
             case ".dbinfo" -> {
-                SQLiteHeader header = SQLiteHeader.fromByteBuffer(getByteBufferFromFile(databaseFilePath));
                 System.out.println("database page size: " + header.getPageSize());
                 System.out.println("number of tables: ");
             }
