@@ -21,7 +21,8 @@ public class Main {
         switch (command) {
             case ".dbinfo" -> {
                 System.out.println("database page size: " + header.getPageSize());
-                System.out.println("number of tables: ");
+                //Use cells count for now...
+                System.out.println("number of tables: " + firstPage.getPageHeader().getCellsCount());
             }
             default -> System.err.println("Missing or invalid command passed: " + command);
         }
