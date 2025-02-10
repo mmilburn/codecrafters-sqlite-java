@@ -1,4 +1,5 @@
 import java.nio.ByteBuffer;
+import java.util.List;
 
 public class InitialPage implements BTreePage {
     private final SQLiteHeader sqLiteHeader;
@@ -28,6 +29,11 @@ public class InitialPage implements BTreePage {
     @Override
     public short[] getCellPointers() {
         return delegate.getCellPointers();
+    }
+
+    @Override
+    public List<Cell> getCells() {
+        return this.delegate.getCells();
     }
 
     public SQLiteHeader getSqLiteHeader() {

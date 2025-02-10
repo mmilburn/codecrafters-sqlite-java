@@ -2,26 +2,28 @@ import java.nio.ByteBuffer;
 
 public enum PageType {
     // Core B-tree pages
-    TABLE_INTERIOR((byte) 0x05, "Table interior page"),
-    TABLE_LEAF((byte) 0x0D, "Table leaf page"),
-    INDEX_INTERIOR((byte) 0x02, "Index interior page"),
-    INDEX_LEAF((byte) 0x0A, "Index leaf page"),
+    TABLE_INTERIOR((byte) 0x05, "Table interior page", CellType.TABLE_INTERIOR),
+    TABLE_LEAF((byte) 0x0D, "Table leaf page", CellType.TABLE_LEAF),
+    INDEX_INTERIOR((byte) 0x02, "Index interior page", CellType.TABLE_INTERIOR),
+    INDEX_LEAF((byte) 0x0A, "Index leaf page", CellType.INDEX_LEAF),
 
     // Special pages
-    FREELIST_LEAF((byte) 0x06, "Freelist leaf page"),
-    FREELIST_TRUNK((byte) 0x07, "Freelist trunk page"),
-    OVERFLOW((byte) 0x03, "Overflow page"),
-    POINTER_MAP((byte) 0x04, "Pointer map page"),
-    LOCK_BYTE((byte) 0x01, "Lock-byte page (page 1)"),
-    FREE((byte) 0x00, "Free page"),
-    UNKNOWN((byte) -1, "Unknown page type");
+    FREELIST_LEAF((byte) 0x06, "Freelist leaf page", CellType.NONE),
+    FREELIST_TRUNK((byte) 0x07, "Freelist trunk page", CellType.NONE),
+    OVERFLOW((byte) 0x03, "Overflow page", CellType.NONE),
+    POINTER_MAP((byte) 0x04, "Pointer map page", CellType.NONE),
+    LOCK_BYTE((byte) 0x01, "Lock-byte page (page 1)", CellType.NONE),
+    FREE((byte) 0x00, "Free page", CellType.NONE),
+    UNKNOWN((byte) -1, "Unknown page type", CellType.NONE);
 
     private final byte code;
     private final String description;
+    private final CellType cellType;
 
-    PageType(byte code, String description) {
+    PageType(byte code, String description, CellType cellType) {
         this.code = code;
         this.description = description;
+        this.cellType = cellType;
     }
 
     public static PageType fromByteBuffer(ByteBuffer data) {
@@ -55,5 +57,9 @@ public enum PageType {
 
     public String getDescription() {
         return description;
+    }
+
+    public CellType getCellType() {
+        return cellType;
     }
 }

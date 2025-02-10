@@ -34,6 +34,10 @@ public class Varint {
         return value;
     }
 
+    public int asInt() {
+        return (int) value;
+    }
+
     public int getBytesConsumed() {
         return bytesConsumed;
     }
