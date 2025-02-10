@@ -33,7 +33,7 @@ public class RegularPage implements BTreePage {
                     short pointer = cellPointers[i];
                     // Duplicate the buffer so we don’t change the shared buffer’s position.
                     ByteBuffer bufferClone = data.duplicate();
-                    bufferClone.position(Short.toUnsignedInt(pointer));
+                    bufferClone.position(start + Short.toUnsignedInt(pointer));
                     return CellFactory.fromByteBuffer(bufferClone, pageType);
                 })
                 .collect(Collectors.toList());
