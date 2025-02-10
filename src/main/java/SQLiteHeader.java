@@ -1,4 +1,5 @@
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 public class SQLiteHeader {
@@ -18,7 +19,7 @@ public class SQLiteHeader {
     private final int schemaFormat;
     private final int defaultPageCacheSize;
     private final int pageNumOfLargestRootBtree;
-    private final int textEncoding;
+    private final TextEncoding textEncoding;
     private final int userVersion;
     private final int incrementalVacuumMode;
     private final int applicationID;
@@ -26,7 +27,7 @@ public class SQLiteHeader {
     private final int versionValidFor;
     private final int sqliteVersionNumber;
 
-    private SQLiteHeader(String header, short pageSize, byte writeVersion, byte readVersion, byte reservedSpace, byte maxEmbeddedPayloadFraction, byte minEmbeddedPayloadFraction, byte leafPayloadFraction, int fileChangeCounter, int numberOfPages, int firstFreelistPage, int totalFreelistPages, int schemaCookie, int schemaFormat, int defaultPageCacheSize, int pageNumOfLargestRootBtree, int textEncoding, int userVersion, int incrementalVacuumMode, int applicationID, byte[] reserved, int versionValidFor, int sqliteVersionNumber) {
+    private SQLiteHeader(String header, short pageSize, byte writeVersion, byte readVersion, byte reservedSpace, byte maxEmbeddedPayloadFraction, byte minEmbeddedPayloadFraction, byte leafPayloadFraction, int fileChangeCounter, int numberOfPages, int firstFreelistPage, int totalFreelistPages, int schemaCookie, int schemaFormat, int defaultPageCacheSize, int pageNumOfLargestRootBtree, TextEncoding textEncoding, int userVersion, int incrementalVacuumMode, int applicationID, byte[] reserved, int versionValidFor, int sqliteVersionNumber) {
         this.header = header;
         this.pageSize = pageSize;
         this.writeVersion = writeVersion;
@@ -70,7 +71,7 @@ public class SQLiteHeader {
         int schemaFormat = buffer.getInt();
         int defaultPageCacheSize = buffer.getInt();
         int pageNumOfLargestRootBtree = buffer.getInt();
-        int textEncoding = buffer.getInt();
+        TextEncoding textEncoding = TextEncoding.fromByteBuffer(buffer);
         int userVersion = buffer.getInt();
         int incrementalVacuumMode = buffer.getInt();
         int applicationID = buffer.getInt();
@@ -165,8 +166,8 @@ public class SQLiteHeader {
         return pageNumOfLargestRootBtree;
     }
 
-    public int getTextEncoding() {
-        return textEncoding;
+    public Charset getCharset() {
+        return textEncoding.getCharset();
     }
 
     public int getUserVersion() {

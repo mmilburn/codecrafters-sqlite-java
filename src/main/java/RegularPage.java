@@ -1,5 +1,6 @@
 import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -33,7 +34,7 @@ public class RegularPage implements BTreePage {
                     short pointer = cellPointers[i];
                     // Duplicate the buffer so we don’t change the shared buffer’s position.
                     ByteBuffer bufferClone = data.duplicate();
-                    bufferClone.position(start + Short.toUnsignedInt(pointer));
+                    bufferClone.position(Short.toUnsignedInt(pointer));
                     return CellFactory.fromByteBuffer(bufferClone, pageType);
                 })
                 .collect(Collectors.toList());

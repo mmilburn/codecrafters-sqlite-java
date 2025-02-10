@@ -3,11 +3,18 @@ import java.util.List;
 
 public class InitialPage implements BTreePage {
     private final SQLiteHeader sqLiteHeader;
+    private final SqliteSchema sqliteSchema;
+    private final ConfigContext.Builder configContextBuilder;
     private final BTreePage delegate;
 
     private InitialPage(SQLiteHeader header, BTreePage delegate) {
+        ConfigContext.Builder tempConfig;
         this.sqLiteHeader = header;
+        tempConfig = ConfigContext.builder().withConfigOptionsFromHeader(this.sqLiteHeader);
         this.delegate = delegate;
+        this.sqliteSchema = SqliteSchema.fromCellsWithCharset(this.delegate.getCells(), tempConfig.build().getCharset());
+        tempConfig = tempConfig.withSqliteSchema(this.sqliteSchema);
+        this.configContextBuilder = tempConfig;
     }
 
     public static InitialPage fromByteBuffer(ByteBuffer data) {
@@ -38,5 +45,13 @@ public class InitialPage implements BTreePage {
 
     public SQLiteHeader getSqLiteHeader() {
         return sqLiteHeader;
+    }
+
+    public SqliteSchema getSqliteSchema() {
+        return sqliteSchema;
+    }
+
+    public ConfigContext.Builder getConfigContextBuilder() {
+        return configContextBuilder;
     }
 }

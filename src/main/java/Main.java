@@ -16,13 +16,15 @@ public class Main {
         String command = args[1];
         List<BTreePage> pages = PageListFactory.fromByteBuffer(getByteBufferFromFile(databaseFilePath));
         InitialPage firstPage = ((InitialPage) pages.getFirst());
-        SQLiteHeader header = firstPage.getSqLiteHeader();
+        ConfigContext configContext = firstPage.getConfigContextBuilder().build();
 
         switch (command) {
             case ".dbinfo" -> {
-                System.out.println("database page size: " + header.getPageSize());
-                //Use cells count for now...
-                System.out.println("number of tables: " + firstPage.getPageHeader().getCellsCount());
+                System.out.println("database page size: " + configContext.getPageSize());
+                System.out.println("number of tables: " + configContext.getTableCount());
+            }
+            case ".tables" -> {
+                System.out.print(String.join(" ", configContext.getTableNames()));
             }
             default -> System.err.println("Missing or invalid command passed: " + command);
         }
