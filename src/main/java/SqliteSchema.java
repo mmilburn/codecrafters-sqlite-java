@@ -31,13 +31,11 @@ public class SqliteSchema {
                 // Map each TableLeafCell to a SchemaEntry.
                 .map(leafCell -> {
                     List<Column> cols = leafCell.initialPayload().getColumns();
-                    // Assume the first column is at index 0 (instead of getFirst()).
-                    String typeStr = new String((byte[]) cols.get(0).getValue(), encoding);
-                    String schemaName = new String((byte[]) cols.get(1).getValue(), encoding);
-                    String tableName = new String((byte[]) cols.get(2).getValue(), encoding);
-                    byte rootPage = (byte) cols.get(3).getValue();
-                    String sql = new String((byte[]) cols.get(4).getValue(), encoding);
-                    SchemaType schemaType = SchemaType.from(typeStr);
+                    SchemaType schemaType = SchemaType.from(cols.get(0).getAsString(encoding));
+                    String schemaName = cols.get(1).getAsString(encoding);
+                    String tableName = cols.get(2).getAsString(encoding);
+                    byte rootPage = cols.get(3).getAsByte();
+                    String sql = cols.get(4).getAsString(encoding);
                     return new SchemaEntry(schemaType, schemaName, tableName, rootPage, sql);
                 })
                 // Group by SchemaType then map by tableName.
