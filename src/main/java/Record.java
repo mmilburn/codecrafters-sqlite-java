@@ -16,13 +16,10 @@ public class Record {
         int serialTypeListSize = size.asInt() - size.getBytesConsumed();
         int headerEnd = buffer.position() + serialTypeListSize;
         ByteBuffer headerSlice = buffer.duplicate().limit(headerEnd).slice();
-        List<SerialType> serialTypes = new ArrayList<>();
-        while (headerSlice.hasRemaining()) {
-            serialTypes.add(SerialType.fromByteBuffer(headerSlice));
-        }
         buffer.position(headerEnd);
         List<Column> columns = new ArrayList<>();
-        for (SerialType type : serialTypes) {
+        while (headerSlice.hasRemaining()) {
+            SerialType type = SerialType.fromByteBuffer(headerSlice);
             columns.add(new Column(type, type.contentFromByteBuffer(buffer)));
         }
         return new Record(size, columns);
