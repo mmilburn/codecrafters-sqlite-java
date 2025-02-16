@@ -72,6 +72,7 @@ public class SqliteSchema {
     }
 
     public List<String> getTableNames() {
+        //There's an implicit requirement that we print out the tables in a sorted order.
         return schemaTable.get(SchemaType.TABLE).keySet().stream().sorted().toList();
 
     }
