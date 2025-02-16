@@ -12,6 +12,13 @@ public class Main {
             return;
         }
 
+        //Queries we should support:
+        //"SELECT COUNT(*) FROM apples"
+        //"SELECT name FROM apples"
+        //"SELECT name, color FROM apples"
+        //"SELECT name, color FROM apples WHERE color = 'Yellow'"
+        //"SELECT id, name FROM superheroes WHERE eye_color = 'Pink Eyes'"
+        //Output from multiple columns should be pipe delimited.
         String databaseFilePath = args[0];
         String command = args[1];
         List<BTreePage> pages = PageListFactory.fromByteBuffer(getByteBufferFromFile(databaseFilePath));
