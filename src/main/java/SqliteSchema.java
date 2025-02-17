@@ -84,4 +84,12 @@ public class SqliteSchema {
         }
         return -1;
     }
+
+    public String getSQLForTable(String tableName) {
+        SchemaEntry entry = schemaTable.get(SchemaType.TABLE).get(tableName);
+        if (entry != null) {
+            return entry.getSql();
+        }
+        return "";
+    }
 }

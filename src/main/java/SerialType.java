@@ -1,5 +1,6 @@
 import util.UnusualSizes;
 
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,24 +28,23 @@ public class SerialType {
     }
 
     public static SerialType fromByteBuffer(ByteBuffer buffer) {
-        return new SerialType(Varint.fromByteBuffer(buffer));
+        Varint varint = Varint.fromByteBuffer(buffer);
+        return new SerialType(varint);
     }
 
     public Object contentFromByteBuffer(ByteBuffer data) {
         long val = varint.getValue();
+
         if (val > 11) {
-            if (val % 2 == 0) {
-                int len = (int) (val - 12) / 2;
-                byte[] buf = new byte[len];
-                data.get(buf);
-                return buf;
-            } else {
-                int len = (int) (val - 13) / 2;
-                byte[] buf = new byte[len];
-                data.get(buf);
-                //This is a string with a certain encoding, but we'll have to deal with it later.
-                return buf;
+            int len = (int) (val - (val % 2 == 0 ? 12 : 13)) / 2;
+            if (data.remaining() < len) {
+                System.err.println("Attempted to read " + len + " bytes but only " + data.remaining() + " left!");
+                throw new BufferUnderflowException();
             }
+
+            byte[] buf = new byte[len];
+            data.get(buf);
+            return buf;
         } else {
             switch ((int) val) {
                 case 0 -> {

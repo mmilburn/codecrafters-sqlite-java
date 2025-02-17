@@ -24,8 +24,7 @@ public class InitialPage implements BTreePage {
         if (bytesRead != 100) {
             throw new IllegalStateException("Expected to read a 100 byte header, read " + bytesRead + " bytes.");
         }
-        int pageSize = header.getPageSize() - bytesRead;
-        return new InitialPage(header, RegularPage.sizedPageFromByteBuffer(data, pageSize));
+        return new InitialPage(header, RegularPage.pageFromByteBuffer(data));
     }
 
     @Override

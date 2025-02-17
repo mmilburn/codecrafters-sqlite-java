@@ -15,7 +15,7 @@ public class Record {
         Varint size = Varint.fromByteBuffer(buffer);
         int serialTypeListSize = size.asInt() - size.getBytesConsumed();
         int headerEnd = buffer.position() + serialTypeListSize;
-        ByteBuffer headerSlice = buffer.duplicate().limit(headerEnd).slice();
+        ByteBuffer headerSlice = buffer.duplicate().limit(headerEnd);
         buffer.position(headerEnd);
         List<Column> columns = new ArrayList<>();
         while (headerSlice.hasRemaining()) {

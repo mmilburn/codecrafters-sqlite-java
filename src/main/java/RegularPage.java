@@ -18,16 +18,13 @@ public class RegularPage implements BTreePage {
         this.cells = cells;
     }
 
-    public static BTreePage sizedPageFromByteBuffer(ByteBuffer data, int pageSize) {
-        int start = data.position();
+    public static BTreePage pageFromByteBuffer(ByteBuffer data) {
         PageHeader pageHeader = PageHeader.fromByteBuffer(data);
         int cellCount = pageHeader.getCellsCount();
         PageType pageType = pageHeader.getPageType();
         ShortBuffer shortBuffer = data.asShortBuffer();
         short[] cellPointers = new short[cellCount];
         shortBuffer.get(cellPointers, 0, cellCount);
-        //Update position to reflect reading in the cellPointers.
-        data.position(data.position() + cellCount * Short.BYTES);
         List<Cell> cells = IntStream.range(0, cellPointers.length)
                 .mapToObj(i -> {
                     short pointer = cellPointers[i];
@@ -37,8 +34,6 @@ public class RegularPage implements BTreePage {
                     return CellFactory.fromByteBuffer(bufferClone, pageType);
                 })
                 .collect(Collectors.toList());
-        //Update position to the next page.
-        data.position(start + pageSize);
         return new RegularPage(pageHeader, cellPointers, cells);
     }
 

@@ -11,7 +11,11 @@ public class PageListFactory {
         int pageSize = firstPage.getSqLiteHeader().getPageSize();
         int totalPages = firstPage.getSqLiteHeader().getNumberOfPages();
         for (int i = 2; i <= totalPages; i++) {
-            pageSuppliers.put(i, () -> RegularPage.sizedPageFromByteBuffer(data.duplicate().limit(pageSize), pageSize));
+            ByteBuffer duplicated = data.duplicate();
+            duplicated.position(pageSize * (i - 1));
+            duplicated.limit(duplicated.position() + pageSize);
+            //Slice here since cell pointers are relative to the current page!
+            pageSuppliers.put(i, () -> RegularPage.pageFromByteBuffer(duplicated.slice()));
         }
         return pageSuppliers;
     }
