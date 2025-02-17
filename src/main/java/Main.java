@@ -4,6 +4,8 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
 
 public class Main {
     public static void main(String[] args) {
@@ -20,11 +22,9 @@ public class Main {
         //"SELECT id, name FROM superheroes WHERE eye_color = 'Pink Eyes'"
         //Output from multiple columns should be pipe delimited.
         String databaseFilePath = args[0];
-        String command = args[1];
-        List<BTreePage> pages = PageListFactory.fromByteBuffer(getByteBufferFromFile(databaseFilePath));
-        InitialPage firstPage = ((InitialPage) pages.getFirst());
-        ConfigContext configContext = firstPage.getConfigContextBuilder().build();
-
+        String command = args[1].toLowerCase();
+        Map<Integer, Supplier<BTreePage>> lazyPages = PageListFactory.lazyPageMap(getByteBufferFromFile(databaseFilePath));
+        ConfigContext configContext = ((InitialPage) lazyPages.get(1).get()).getConfigContextBuilder().build();
         switch (command) {
             case ".dbinfo" -> {
                 System.out.println("database page size: " + configContext.getPageSize());

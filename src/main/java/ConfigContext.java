@@ -39,6 +39,10 @@ public class ConfigContext {
         return sqliteSchema.getTableNames();
     }
 
+    public int getRootPageForTable(String tableName) {
+        return sqliteSchema.getRootPageForTable(tableName);
+    }
+
     public static class Builder {
         private int pageSize;
         private int numberOfPages;

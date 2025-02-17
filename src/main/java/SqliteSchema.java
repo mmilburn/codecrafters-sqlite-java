@@ -76,4 +76,12 @@ public class SqliteSchema {
         return schemaTable.get(SchemaType.TABLE).keySet().stream().sorted().toList();
 
     }
+
+    public int getRootPageForTable(String tableName) {
+        SchemaEntry entry = schemaTable.get(SchemaType.TABLE).get(tableName);
+        if (entry != null) {
+            return entry.getRootPage();
+        }
+        return -1;
+    }
 }

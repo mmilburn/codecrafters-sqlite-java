@@ -25,8 +25,8 @@ public class SchemaEntry {
         return tableName;
     }
 
-    public byte getRootPage() {
-        return rootPage;
+    public int getRootPage() {
+        return Byte.toUnsignedInt(rootPage);
     }
 
     public String getSql() {
