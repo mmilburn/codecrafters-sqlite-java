@@ -1,4 +1,7 @@
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -8,12 +11,12 @@ public class HackySQLParser {
             "(?i)select\\s+(.*?)\\s+from\\s+(\\S+)(?:\\s+where\\s+(.*))?"
     );
 
-    private final List<String> columns;
+    private final List<String> colsOrFuncs;
     private final String table;
     private final Map<String, String> conditions;
 
-    private HackySQLParser(List<String> columns, String table, Map<String, String> conditions) {
-        this.columns = columns;
+    private HackySQLParser(List<String> colsOrFuncs, String table, Map<String, String> conditions) {
+        this.colsOrFuncs = colsOrFuncs;
         this.table = table;
         this.conditions = conditions;
     }
@@ -25,9 +28,14 @@ public class HackySQLParser {
             throw new IllegalArgumentException("Invalid SQL query: " + query);
         }
 
-        List<String> columns = Arrays.stream(matcher.group(1).split(","))
+        List<String> colOrFuncs = Arrays.stream(matcher.group(1).split(","))
                 .map(String::trim)
+                .filter(str -> !str.contains(" "))
                 .collect(Collectors.toList());
+        if (colOrFuncs.isEmpty()) {
+            throw new IllegalArgumentException("Invalid SQL query: " + query +
+                    "\nNo columns or functions found!\nIs a comma missing?");
+        }
         String table = matcher.group(2);
 
         Map<String, String> conditions = new HashMap<>();
@@ -35,7 +43,7 @@ public class HackySQLParser {
             extractConditions(matcher.group(3), conditions);
         }
 
-        return new HackySQLParser(columns, table, conditions);
+        return new HackySQLParser(colOrFuncs, table, conditions);
     }
 
     private static void extractConditions(String conditionString, Map<String, String> conditions) {
@@ -48,8 +56,8 @@ public class HackySQLParser {
         }
     }
 
-    public List<String> getColumns() {
-        return columns;
+    public List<String> getColsOrFuncs() {
+        return colsOrFuncs;
     }
 
     public String getTable() {
@@ -67,7 +75,7 @@ public class HackySQLParser {
     @Override
     public String toString() {
         return "HackySQLParser{" +
-                "columns=" + columns +
+                "columns=" + colsOrFuncs +
                 ", table='" + table + '\'' +
                 ", conditions=" + conditions +
                 '}';

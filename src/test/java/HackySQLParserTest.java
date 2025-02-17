@@ -25,7 +25,7 @@ public class HackySQLParserTest {
     public void testValidSQLQueries(String query, List<String> expectedColumns, String expectedTable, Map<String, String> expectedConditions) {
         HackySQLParser parser = HackySQLParser.fromSQLQuery(query);
 
-        Assert.assertEquals(parser.getColumns(), expectedColumns, "Columns do not match.");
+        Assert.assertEquals(parser.getColsOrFuncs(), expectedColumns, "Columns do not match.");
         Assert.assertEquals(parser.getTable(), expectedTable, "Table name does not match.");
         Assert.assertEquals(parser.getConditions(), expectedConditions, "Conditions do not match.");
     }
@@ -38,8 +38,7 @@ public class HackySQLParserTest {
                 {"SELECT name, color"},  // Missing FROM clause
                 {"DELETE FROM apples"},  // Invalid SQL command
                 {"SELECT name, color WHERE color = 'Yellow'"},  // Missing FROM
-                //TODO: fix this!
-                //{"SELECT age city FROM users WHERE age > 30 AND city = 'New York'"} // Missing comma between columns
+                {"SELECT age city FROM users WHERE age > 30 AND city = 'New York'"} // Missing comma between columns
         };
     }
 
