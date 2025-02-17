@@ -24,15 +24,26 @@ public class Main {
         String command = args[1].toLowerCase();
         Map<Integer, Supplier<BTreePage>> lazyPages = PageListFactory.lazyPageMap(getByteBufferFromFile(databaseFilePath));
         ConfigContext configContext = ((InitialPage) lazyPages.get(1).get()).getConfigContextBuilder().build();
-        switch (command) {
-            case ".dbinfo" -> {
-                System.out.println("database page size: " + configContext.getPageSize());
-                System.out.println("number of tables: " + configContext.getTableCount());
+
+        if (command.toLowerCase().startsWith("select ")) {
+            HackySQLParser parser = HackySQLParser.fromSQLQuery(command);
+            if (parser.hasCountOperation()) {
+                BTreePage page = lazyPages.get(configContext.getRootPageForTable(parser.getTable())).get();
+                System.out.println(page.getCellsCount());
             }
-            case ".tables" -> {
-                System.out.print(String.join(" ", configContext.getTableNames()));
+            else {
+                System.err.println("Support for query: " + command + " not implemented!");
             }
-            default -> System.err.println("Missing or invalid command passed: " + command);
+
+        } else {
+            switch (command) {
+                case ".dbinfo" -> {
+                    System.out.println("database page size: " + configContext.getPageSize());
+                    System.out.println("number of tables: " + configContext.getTableCount());
+                }
+                case ".tables" -> System.out.print(String.join(" ", configContext.getTableNames()));
+                default -> System.err.println("Missing or invalid command passed: " + command);
+            }
         }
     }
 

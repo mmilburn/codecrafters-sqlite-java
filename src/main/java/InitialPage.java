@@ -43,6 +43,11 @@ public class InitialPage implements BTreePage {
         return this.delegate.getCells();
     }
 
+    @Override
+    public int getCellsCount() {
+        return this.delegate.getCellsCount();
+    }
+
     public SQLiteHeader getSqLiteHeader() {
         return sqLiteHeader;
     }

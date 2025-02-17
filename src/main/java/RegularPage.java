@@ -56,4 +56,9 @@ public class RegularPage implements BTreePage {
     public List<Cell> getCells() {
         return cells;
     }
+
+    @Override
+    public int getCellsCount() {
+        return this.pageHeader.getCellsCount();
+    }
 }

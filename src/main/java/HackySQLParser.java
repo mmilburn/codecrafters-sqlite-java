@@ -72,6 +72,13 @@ public class HackySQLParser {
         return !conditions.isEmpty();
     }
 
+    public boolean hasCountOperation() {
+        return !colsOrFuncs.stream()
+                .filter(str -> str.equalsIgnoreCase("count(*)"))
+                .toList()
+                .isEmpty();
+    }
+
     @Override
     public String toString() {
         return "HackySQLParser{" +

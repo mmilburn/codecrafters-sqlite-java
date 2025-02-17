@@ -6,4 +6,6 @@ public interface BTreePage {
     short[] getCellPointers();
 
     List<Cell> getCells();
+
+    int getCellsCount();
 }
