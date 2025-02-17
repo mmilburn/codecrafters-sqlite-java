@@ -6,7 +6,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class HackySQLParser {
+public class HackyQueryParser {
     private static final Pattern SQL_PATTERN = Pattern.compile(
             "(?i)select\\s+(.*?)\\s+from\\s+(\\S+)(?:\\s+where\\s+(.*))?"
     );
@@ -15,13 +15,13 @@ public class HackySQLParser {
     private final String table;
     private final Map<String, String> conditions;
 
-    private HackySQLParser(List<String> colsOrFuncs, String table, Map<String, String> conditions) {
+    private HackyQueryParser(List<String> colsOrFuncs, String table, Map<String, String> conditions) {
         this.colsOrFuncs = colsOrFuncs;
         this.table = table;
         this.conditions = conditions;
     }
 
-    public static HackySQLParser fromSQLQuery(String query) {
+    public static HackyQueryParser fromSQLQuery(String query) {
         Matcher matcher = SQL_PATTERN.matcher(query);
 
         if (!matcher.matches()) {
@@ -43,7 +43,7 @@ public class HackySQLParser {
             extractConditions(matcher.group(3), conditions);
         }
 
-        return new HackySQLParser(colOrFuncs, table, conditions);
+        return new HackyQueryParser(colOrFuncs, table, conditions);
     }
 
     private static void extractConditions(String conditionString, Map<String, String> conditions) {

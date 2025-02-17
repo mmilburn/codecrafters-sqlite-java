@@ -26,7 +26,7 @@ public class Main {
         ConfigContext configContext = ((InitialPage) lazyPages.get(1).get()).getConfigContextBuilder().build();
 
         if (command.toLowerCase().startsWith("select ")) {
-            HackySQLParser parser = HackySQLParser.fromSQLQuery(command);
+            HackyQueryParser parser = HackyQueryParser.fromSQLQuery(command);
             if (parser.hasCountOperation()) {
                 BTreePage page = lazyPages.get(configContext.getRootPageForTable(parser.getTable())).get();
                 System.out.println(page.getCellsCount());

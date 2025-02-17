@@ -5,7 +5,7 @@ import org.testng.annotations.Test;
 import java.util.List;
 import java.util.Map;
 
-public class HackySQLParserTest {
+public class HackyQueryParserTest {
 
     @DataProvider(name = "validSQLQueries")
     public Object[][] validSQLQueries() {
@@ -24,7 +24,7 @@ public class HackySQLParserTest {
 
     @Test(dataProvider = "validSQLQueries")
     public void testValidSQLQueries(String query, List<String> expectedColumns, String expectedTable, Map<String, String> expectedConditions) {
-        HackySQLParser parser = HackySQLParser.fromSQLQuery(query);
+        HackyQueryParser parser = HackyQueryParser.fromSQLQuery(query);
 
         Assert.assertEquals(parser.getColsOrFuncs(), expectedColumns, "Columns do not match.");
         Assert.assertEquals(parser.getTable(), expectedTable, "Table name does not match.");
@@ -45,6 +45,6 @@ public class HackySQLParserTest {
 
     @Test(dataProvider = "invalidSQLQueries", expectedExceptions = IllegalArgumentException.class)
     public void testInvalidSQLQueries(String query) {
-        HackySQLParser.fromSQLQuery(query); // Should throw IllegalArgumentException
+        HackyQueryParser.fromSQLQuery(query); // Should throw IllegalArgumentException
     }
 }
