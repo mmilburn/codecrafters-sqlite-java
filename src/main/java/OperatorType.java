@@ -9,16 +9,20 @@ public enum OperatorType {
     GREATER_THAN_EQUALS(">="),
     UNKNOWN("unknown");
 
-    private final String operator;
+    private final String type;
 
-    OperatorType(String operator) {
-        this.operator = operator;
+    OperatorType(String type) {
+        this.type = type;
     }
 
     public static OperatorType from(String str) {
         return Arrays.stream(values())
-                .filter(type -> type.operator.equals(str))
+                .filter(type -> type.type.equals(str))
                 .findFirst()
                 .orElse(UNKNOWN);
+    }
+
+    public String getType() {
+        return type;
     }
 }
