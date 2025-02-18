@@ -81,7 +81,7 @@ public class HackyQueryParser {
 
     @Override
     public String toString() {
-        return "HackySQLParser{" +
+        return "HackyQueryParser{" +
                 "columns=" + colsOrFuncs +
                 ", table='" + table + '\'' +
                 ", conditions=" + conditions +
