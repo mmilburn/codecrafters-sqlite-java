@@ -3,10 +3,10 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class Main {
@@ -34,19 +34,42 @@ public class Main {
             BTreePage page = lazyPages.get(configContext.getRootPageForTable(parser.getTable())).get();
             if (parser.hasCountOperation()) {
                 System.out.println(page.getCellsCount());
-            } else if (!parser.getColsOrFuncs().isEmpty() && !parser.hasConditions()) {
+            } else if (!parser.getColsOrFuncs().isEmpty()) {
                 page.getCells().stream()
                         .filter(cell -> cell.cellType() == CellType.TABLE_LEAF)
                         .map(cell -> (TableLeafCell) cell)
                         .map(leafCell -> {
+                            Predicate<Record> where = rec -> true;
+                            if (!parser.getConditions().isEmpty()) {
+                                //We will only support one condition for now.
+                                if (parser.getConditions().size() > 1) {
+                                    System.err.println("Only one condition in the query is supported.");
+                                }
+                                Condition condition = parser.getConditions().getFirst();
+                                if (condition.operator() != OperatorType.EQUALS) {
+                                    System.err.println("Condition operator: " + condition.operator().getType() + " unsupported!");
+                                }
+                                where = rec -> {
+                                    String whereCol = condition.column().toLowerCase();
+                                    int index = ddlParser.indexForColumn(whereCol);
+                                    ColumnType type = ddlParser.getColumnType(whereCol);
+                                    Column col = rec.getColumnForIndex(index);
+                                    if (String.valueOf(col.getValueAs(type, configContext.getCharset())).equals(condition.value())) {
+                                        return true;
+                                    }
+                                    return false;
+                                };
+                            }
                             List<String> vals = new ArrayList<>();
                             Record rec = leafCell.initialPayload();
                             for (String colName : parser.getColsOrFuncs()) {
-                                colName = colName.toLowerCase();
-                                int index = ddlParser.indexForColumn(colName);
-                                ColumnType type = ddlParser.getColumnType(colName);
-                                Column col = rec.getColumnForIndex(index);
-                                vals.add(String.valueOf(col.getValueAs(type, configContext.getCharset())));
+                                if (where.test(rec)) {
+                                    colName = colName.toLowerCase();
+                                    int index = ddlParser.indexForColumn(colName);
+                                    ColumnType type = ddlParser.getColumnType(colName);
+                                    Column col = rec.getColumnForIndex(index);
+                                    vals.add(String.valueOf(col.getValueAs(type, configContext.getCharset())));
+                                }
                             }
                             return String.join("|", vals);
                         }).forEach(System.out::println);

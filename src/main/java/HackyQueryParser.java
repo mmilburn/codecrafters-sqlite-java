@@ -9,7 +9,8 @@ public class HackyQueryParser {
     private static final Pattern SQL_PATTERN = Pattern.compile(
             "(?i)select\\s+(.*?)\\s+from\\s+(\\S+)(?:\\s+where\\s+(.*))?"
     );
-    private static final Pattern CONDITION = Pattern.compile("(\\S+)\\s*(=|!=|<|>|<=|>=)\\s*(\\S+)");
+    //Capture everything inside single or double quotes, then try capturing a non-space group.
+    private static final Pattern CONDITION = Pattern.compile("(\\S+)\\s*(=|!=|<|>|<=|>=)\\s*('.*'|\".*\"|\\S+)");
 
     private final List<String> colsOrFuncs;
     private final String table;
@@ -54,8 +55,11 @@ public class HackyQueryParser {
                 conditions.add(new Condition(
                         matcher.group(1).trim(),
                         OperatorType.from(matcher.group(2)),
-                        matcher.group(3).trim()
+                        //Remove enclosing single or double quotes.
+                        matcher.group(3).replaceAll("^(['\"])(.*)\\1$", "$2").trim()
                 ));
+            } else {
+                System.err.println("Didn't match: " + condition);
             }
         }
         return conditions;
@@ -71,10 +75,6 @@ public class HackyQueryParser {
 
     public List<Condition> getConditions() {
         return conditions;
-    }
-
-    public boolean hasConditions() {
-        return !conditions.isEmpty();
     }
 
     public boolean hasCountOperation() {
