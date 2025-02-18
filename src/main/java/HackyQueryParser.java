@@ -1,7 +1,6 @@
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -10,12 +9,13 @@ public class HackyQueryParser {
     private static final Pattern SQL_PATTERN = Pattern.compile(
             "(?i)select\\s+(.*?)\\s+from\\s+(\\S+)(?:\\s+where\\s+(.*))?"
     );
+    private static final Pattern CONDITION = Pattern.compile("(\\S+)\\s*(=|!=|<|>|<=|>=)\\s*(\\S+)");
 
     private final List<String> colsOrFuncs;
     private final String table;
-    private final Map<String, String> conditions;
+    private final List<Condition> conditions;
 
-    private HackyQueryParser(List<String> colsOrFuncs, String table, Map<String, String> conditions) {
+    private HackyQueryParser(List<String> colsOrFuncs, String table, List<Condition> conditions) {
         this.colsOrFuncs = colsOrFuncs;
         this.table = table;
         this.conditions = conditions;
@@ -37,23 +37,28 @@ public class HackyQueryParser {
                     "\nNo columns or functions found!\nIs a comma missing?");
         }
         String table = matcher.group(2);
-
-        Map<String, String> conditions = new HashMap<>();
+        List<Condition> conditions = new ArrayList<>();
         if (matcher.group(3) != null) {
-            extractConditions(matcher.group(3), conditions);
+            conditions = extractConditions(matcher.group(3));
         }
 
         return new HackyQueryParser(colOrFuncs, table, conditions);
     }
 
-    private static void extractConditions(String conditionString, Map<String, String> conditions) {
+    private static List<Condition> extractConditions(String conditionString) {
+        List<Condition> conditions = new ArrayList<>();
         String[] conditionsArray = conditionString.split("\\s+(?i)and\\s+");
         for (String condition : conditionsArray) {
-            String[] parts = condition.split("\\s*(=|!=|<|>|<=|>=)\\s*");
-            if (parts.length == 2) {
-                conditions.put(parts[0].trim(), parts[1].trim());
+            Matcher matcher = CONDITION.matcher(condition);
+            if (matcher.matches()) {
+                conditions.add(new Condition(
+                        matcher.group(1).trim(),
+                        OperatorType.from(matcher.group(2)),
+                        matcher.group(3).trim()
+                ));
             }
         }
+        return conditions;
     }
 
     public List<String> getColsOrFuncs() {
@@ -64,7 +69,7 @@ public class HackyQueryParser {
         return table;
     }
 
-    public Map<String, String> getConditions() {
+    public List<Condition> getConditions() {
         return conditions;
     }
 
