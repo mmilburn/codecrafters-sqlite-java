@@ -3,6 +3,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -27,11 +28,14 @@ public class Main {
 
         if (command.toLowerCase().startsWith("select ")) {
             HackyQueryParser parser = HackyQueryParser.fromSQLQuery(command);
+            HackyDDLParser ddlParser = HackyDDLParser.fromCreateTable(configContext.getSQLForTable(parser.getTable()));
+            BTreePage page = lazyPages.get(configContext.getRootPageForTable(parser.getTable())).get();
             if (parser.hasCountOperation()) {
-                BTreePage page = lazyPages.get(configContext.getRootPageForTable(parser.getTable())).get();
                 System.out.println(page.getCellsCount());
-            }
-            else {
+            } else if (!parser.getColsOrFuncs().isEmpty() && !parser.hasConditions()) {
+                List<Integer> colIndices = parser.getColsOrFuncs().stream().map(ddlParser::indexForColumn).toList();
+
+            } else {
                 System.err.println("Support for query: " + command + " not implemented!");
             }
 

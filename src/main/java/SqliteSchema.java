@@ -21,21 +21,19 @@ public class SqliteSchema {
                 .map(cell -> (TableLeafCell) cell)
                 // Filter out any cells that don't have exactly 5 columns, logging them.
                 .filter(leafCell -> {
-                    List<Column> cols = leafCell.initialPayload().getColumns();
-                    if (cols.size() != 5) {
-                        System.err.println(cols);
+                    if (leafCell.initialPayload().getNumberOfColumns() != 5) {
                         return false;
                     }
                     return true;
                 })
                 // Map each TableLeafCell to a SchemaEntry.
                 .map(leafCell -> {
-                    List<Column> cols = leafCell.initialPayload().getColumns();
-                    SchemaType schemaType = SchemaType.from(cols.get(0).getAsString(encoding));
-                    String schemaName = cols.get(1).getAsString(encoding);
-                    String tableName = cols.get(2).getAsString(encoding);
-                    byte rootPage = cols.get(3).getAsByte();
-                    String sql = cols.get(4).getAsString(encoding);
+                    Record rec = leafCell.initialPayload();
+                    SchemaType schemaType = SchemaType.from(rec.getColumnForIndex(0).getAsString(encoding));
+                    String schemaName = rec.getColumnForIndex(1).getAsString(encoding);
+                    String tableName = rec.getColumnForIndex(2).getAsString(encoding);
+                    byte rootPage = rec.getColumnForIndex(3).getAsByte();
+                    String sql = rec.getColumnForIndex(4).getAsString(encoding);
                     return new SchemaEntry(schemaType, schemaName, tableName, rootPage, sql);
                 })
                 // Group by SchemaType then map by tableName.

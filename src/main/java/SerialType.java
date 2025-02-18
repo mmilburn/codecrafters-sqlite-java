@@ -6,19 +6,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class SerialType {
-    private static final Map<Long, Class<?>> SERIAL_TYPE_MAPPING = new HashMap<>();
+    private static final Map<Long, Integer> SERIAL_TYPE_SIZES = new HashMap<>();
 
     static {
-        SERIAL_TYPE_MAPPING.put(0L, Void.class);
-        SERIAL_TYPE_MAPPING.put(1L, Byte.class);
-        SERIAL_TYPE_MAPPING.put(2L, Short.class);
-        SERIAL_TYPE_MAPPING.put(3L, Integer.class);
-        SERIAL_TYPE_MAPPING.put(4L, Integer.class);
-        SERIAL_TYPE_MAPPING.put(5L, Long.class);
-        SERIAL_TYPE_MAPPING.put(6L, Long.class);
-        SERIAL_TYPE_MAPPING.put(7L, Double.class);
-        SERIAL_TYPE_MAPPING.put(8L, Integer.class);
-        SERIAL_TYPE_MAPPING.put(9L, Integer.class);
+        SERIAL_TYPE_SIZES.put(0L, 0);
+        SERIAL_TYPE_SIZES.put(1L, 1);
+        SERIAL_TYPE_SIZES.put(2L, 2);
+        SERIAL_TYPE_SIZES.put(3L, 3);
+        SERIAL_TYPE_SIZES.put(4L, 4);
+        SERIAL_TYPE_SIZES.put(5L, 6);
+        SERIAL_TYPE_SIZES.put(6L, 8);
+        SERIAL_TYPE_SIZES.put(7L, 8);
+        SERIAL_TYPE_SIZES.put(8L, 0);
+        SERIAL_TYPE_SIZES.put(9L, 0);
     }
 
     private final Varint varint;
@@ -30,6 +30,14 @@ public class SerialType {
     public static SerialType fromByteBuffer(ByteBuffer buffer) {
         Varint varint = Varint.fromByteBuffer(buffer);
         return new SerialType(varint);
+    }
+
+    public int getSize() {
+        long val = varint.getValue();
+        if (val > 11) {
+            return (int) (val - (val % 2 == 0 ? 12 : 13)) / 2;
+        }
+        return SERIAL_TYPE_SIZES.get(val);
     }
 
     public Object contentFromByteBuffer(ByteBuffer data) {
@@ -87,14 +95,6 @@ public class SerialType {
                 }
             }
         }
-    }
-
-    public Class<?> getValueClass() {
-        long val = varint.getValue();
-        if (val > 11) {
-            return isString() ? String.class : byte[].class;
-        }
-        return SERIAL_TYPE_MAPPING.getOrDefault(val, Object.class);
     }
 
     public boolean isString() {
