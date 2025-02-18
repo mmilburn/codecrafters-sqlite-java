@@ -1,3 +1,4 @@
+import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 
 public class Column {
@@ -7,6 +8,15 @@ public class Column {
     public Column(SerialType type, Object value) {
         this.type = type;
         this.value = value;
+    }
+
+    public Object getValueAs(ColumnType columnType, Charset encoding) {
+        try {
+            Method method = this.getClass().getMethod(columnType.getColumnMethod(), Charset.class);
+            return method.invoke(this, encoding);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to get column value as " + columnType, e);
+        }
     }
 
     public String getAsString(Charset encoding) {
@@ -57,5 +67,4 @@ public class Column {
         }
         throw new ClassCastException("Column value is not a double.");
     }
-
 }

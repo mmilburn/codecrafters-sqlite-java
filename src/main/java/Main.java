@@ -3,6 +3,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -33,7 +35,21 @@ public class Main {
             if (parser.hasCountOperation()) {
                 System.out.println(page.getCellsCount());
             } else if (!parser.getColsOrFuncs().isEmpty() && !parser.hasConditions()) {
-                List<Integer> colIndices = parser.getColsOrFuncs().stream().map(ddlParser::indexForColumn).toList();
+                page.getCells().stream()
+                        .filter(cell -> cell.cellType() == CellType.TABLE_LEAF)
+                        .map(cell -> (TableLeafCell) cell)
+                        .map(leafCell -> {
+                            List<String> vals = new ArrayList<>();
+                            Record rec = leafCell.initialPayload();
+                            for (String colName : parser.getColsOrFuncs()) {
+                                colName = colName.toLowerCase();
+                                int index = ddlParser.indexForColumn(colName);
+                                ColumnType type = ddlParser.getColumnType(colName);
+                                Column col = rec.getColumnForIndex(index);
+                                vals.add(String.valueOf(col.getValueAs(type, configContext.getCharset())));
+                            }
+                            return String.join("|", vals);
+                        }).forEach(System.out::println);
 
             } else {
                 System.err.println("Support for query: " + command + " not implemented!");
