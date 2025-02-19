@@ -24,7 +24,7 @@ public class Main {
         //"SELECT id, name FROM superheroes WHERE eye_color = 'Pink Eyes'"
         //Output from multiple columns should be pipe delimited.
         String databaseFilePath = args[0];
-        String command = args[1].toLowerCase();
+        String command = args[1];
         Map<Integer, Supplier<BTreePage>> lazyPages = PageListFactory.lazyPageMap(getByteBufferFromFile(databaseFilePath));
         ConfigContext configContext = ((InitialPage) lazyPages.get(1).get()).getConfigContextBuilder().build();
 
@@ -54,16 +54,13 @@ public class Main {
                                     int index = ddlParser.indexForColumn(whereCol);
                                     ColumnType type = ddlParser.getColumnType(whereCol);
                                     Column col = rec.getColumnForIndex(index);
-                                    if (String.valueOf(col.getValueAs(type, configContext.getCharset())).equals(condition.value())) {
-                                        return true;
-                                    }
-                                    return false;
+                                    return String.valueOf(col.getValueAs(type, configContext.getCharset())).equals(condition.value());
                                 };
                             }
                             List<String> vals = new ArrayList<>();
                             Record rec = leafCell.initialPayload();
-                            for (String colName : parser.getColsOrFuncs()) {
-                                if (where.test(rec)) {
+                            if (where.test(rec)) {
+                                for (String colName : parser.getColsOrFuncs()) {
                                     colName = colName.toLowerCase();
                                     int index = ddlParser.indexForColumn(colName);
                                     ColumnType type = ddlParser.getColumnType(colName);
@@ -72,7 +69,8 @@ public class Main {
                                 }
                             }
                             return String.join("|", vals);
-                        }).forEach(System.out::println);
+                        }).filter(str -> !str.isEmpty())
+                        .forEach(System.out::println);
 
             } else {
                 System.err.println("Support for query: " + command + " not implemented!");

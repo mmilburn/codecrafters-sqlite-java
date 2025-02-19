@@ -1,3 +1,5 @@
+import util.Memoization;
+
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,13 +20,17 @@ public class Record {
         int headerEnd = buffer.position() + serialTypeListSize;
         ByteBuffer headerSlice = buffer.duplicate().limit(headerEnd);
         buffer.position(headerEnd);
+
         Map<Integer, Supplier<Column>> lazyCols = new HashMap<>();
-        int offset = 0;
+        final int[] offset = {0};
         for (int i = 0; headerSlice.hasRemaining(); i++) {
             SerialType type = SerialType.fromByteBuffer(headerSlice);
-            ByteBuffer duplicated = buffer.duplicate().position(buffer.position() + offset);
-            lazyCols.put(i, () -> new Column(type, type.contentFromByteBuffer(duplicated)));
-            offset += type.getSize();
+            int currentOffset = offset[0];
+            lazyCols.put(i, Memoization.memoize(() -> {
+                ByteBuffer dup = buffer.duplicate().position(buffer.position() + currentOffset);
+                return new Column(type, type.contentFromByteBuffer(dup));
+            }));
+            offset[0] += type.getSize();
         }
         return new Record(size, lazyCols);
     }

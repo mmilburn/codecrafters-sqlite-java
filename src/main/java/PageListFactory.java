@@ -1,3 +1,5 @@
+import util.Memoization;
+
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,7 +17,7 @@ public class PageListFactory {
             duplicated.position(pageSize * (i - 1));
             duplicated.limit(duplicated.position() + pageSize);
             //Slice here since cell pointers are relative to the current page!
-            pageSuppliers.put(i, () -> RegularPage.pageFromByteBuffer(duplicated.slice()));
+            pageSuppliers.put(i, Memoization.memoize(() -> RegularPage.pageFromByteBuffer(duplicated.slice())));
         }
         return pageSuppliers;
     }
