@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 
 public class HackyDDLParser {
     private static final Pattern CREATE_TABLE_PATTERN = Pattern.compile(
-            "(?i)create table\\s+([A-Za-z_][A-Za-z0-9_]*)\\s*\\((.*)\\)"
+            "(?i)create table\\s+[\"']?([A-Za-z_][A-Za-z0-9_]*)[\"']?\\s*\\((.*)\\)"
     );
 
     private final String table;

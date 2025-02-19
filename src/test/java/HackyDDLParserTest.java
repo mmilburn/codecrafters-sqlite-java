@@ -21,7 +21,12 @@ public class HackyDDLParserTest {
                 {"CREATE TABLE test (id integer primary key, name text)", "test", Set.of("id", "name")},
                 // Additional cases with different column orders
                 {"CREATE TABLE mixed (name text, id integer primary key)", "mixed", Set.of("id", "name")},
-                {"CREATE TABLE multi_col (id integer primary key, name text, age integer, address text)", "multi_col", Set.of("id", "name", "age", "address")}
+                {"CREATE TABLE multi_col (id integer primary key, name text, age integer, address text)", "multi_col",
+                        Set.of("id", "name", "age", "address")},
+                {"CREATE TABLE \"superheroes\" (id integer primary key autoincrement, name text not null, eye_color " +
+                        "text, hair_color text, appearance_count integer, first_appearance text, first_appearance_year" +
+                        " text)", "superheroes", Set.of("id", "name", "eye_color", "hair_color", "appearance_count",
+                        "first_appearance", "first_appearance_year")}
         };
     }
 
