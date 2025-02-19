@@ -2,10 +2,10 @@ public class SchemaEntry {
     private final SchemaType type;
     private final String schemaName;
     private final String tableName;
-    private final byte rootPage;
+    private final Integer rootPage;
     private final String sql;
 
-    public SchemaEntry(SchemaType type, String schemaName, String tableName, byte rootPage, String sql) {
+    public SchemaEntry(SchemaType type, String schemaName, String tableName, Integer rootPage, String sql) {
         this.type = type;
         this.schemaName = schemaName;
         this.tableName = tableName;
@@ -25,8 +25,8 @@ public class SchemaEntry {
         return tableName;
     }
 
-    public int getRootPage() {
-        return Byte.toUnsignedInt(rootPage);
+    public Integer getRootPage() {
+        return rootPage;
     }
 
     public String getSql() {

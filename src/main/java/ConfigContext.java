@@ -39,7 +39,7 @@ public class ConfigContext {
         return sqliteSchema.getTableNames();
     }
 
-    public int getRootPageForTable(String tableName) {
+    public Integer getRootPageForTable(String tableName) {
         return sqliteSchema.getRootPageForTable(tableName);
     }
 

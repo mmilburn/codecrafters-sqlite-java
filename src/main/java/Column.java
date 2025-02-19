@@ -10,6 +10,10 @@ public class Column {
         this.value = value;
     }
 
+    public SerialType getType() {
+        return type;
+    }
+
     public Object getValueAs(ColumnType columnType, Charset encoding) {
         if (type.isNull()) {
             return null;
@@ -50,11 +54,17 @@ public class Column {
         throw new ClassCastException("Column value is not a short.");
     }
 
-    public int getAsInt() {
+    public Integer getAsNullableInt() {
+        if (value == null || type.isNull()) {
+            return null; // Return null explicitly if the value is NULL
+        }
         if (value instanceof Integer i) {
             return i;
         }
-        throw new ClassCastException("Column value is not an int.");
+        if (value instanceof Byte b) {
+            return (int) b; // Convert Byte to Integer safely
+        }
+        throw new ClassCastException("Column value is not an integer.");
     }
 
     public long getAsLong() {

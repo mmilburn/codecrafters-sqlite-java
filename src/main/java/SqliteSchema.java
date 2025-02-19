@@ -21,10 +21,7 @@ public class SqliteSchema {
                 .map(cell -> (TableLeafCell) cell)
                 // Filter out any cells that don't have exactly 5 columns, logging them.
                 .filter(leafCell -> {
-                    if (leafCell.initialPayload().getNumberOfColumns() != 5) {
-                        return false;
-                    }
-                    return true;
+                    return leafCell.initialPayload().getNumberOfColumns() == 5;
                 })
                 // Map each TableLeafCell to a SchemaEntry.
                 .map(leafCell -> {
@@ -32,7 +29,7 @@ public class SqliteSchema {
                     SchemaType schemaType = SchemaType.from(rec.getColumnForIndex(0).getAsString(encoding));
                     String schemaName = rec.getColumnForIndex(1).getAsString(encoding);
                     String tableName = rec.getColumnForIndex(2).getAsString(encoding);
-                    byte rootPage = rec.getColumnForIndex(3).getAsByte();
+                    Integer rootPage = rec.getColumnForIndex(3).getAsNullableInt();
                     String sql = rec.getColumnForIndex(4).getAsString(encoding);
                     return new SchemaEntry(schemaType, schemaName, tableName, rootPage, sql);
                 })
@@ -78,7 +75,12 @@ public class SqliteSchema {
     public int getRootPageForTable(String tableName) {
         SchemaEntry entry = schemaTable.get(SchemaType.TABLE).get(tableName);
         if (entry != null) {
-            return entry.getRootPage();
+            Integer rootPage = entry.getRootPage();
+            if (rootPage == null || rootPage == 0) {
+                System.err.println("Warning: Table " + tableName + " has no valid root page.");
+                return -1;
+            }
+            return rootPage;
         }
         return -1;
     }

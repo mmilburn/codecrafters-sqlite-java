@@ -111,6 +111,11 @@ public class SerialType {
         return varint.getValue() == 0;
     }
 
+    public boolean isIntegral() {
+        long val = varint.getValue();
+        return val < 10 && val != 7;
+    }
+
     public Varint getVarint() {
         return varint;
     }
