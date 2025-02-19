@@ -33,6 +33,11 @@ public class InitialPage implements BTreePage {
     }
 
     @Override
+    public PageType getPageType() {
+        return delegate.getPageType();
+    }
+
+    @Override
     public short[] getCellPointers() {
         return delegate.getCellPointers();
     }

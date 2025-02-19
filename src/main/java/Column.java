@@ -11,6 +11,9 @@ public class Column {
     }
 
     public Object getValueAs(ColumnType columnType, Charset encoding) {
+        if (type.isNull()) {
+            return null;
+        }
         try {
             Method method = this.getClass().getMethod(columnType.getColumnMethod(), Charset.class);
             return method.invoke(this, encoding);

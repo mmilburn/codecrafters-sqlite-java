@@ -24,24 +24,37 @@ public class SelectQueryHandler {
     public void executeSelectQuery(String command) {
         HackyQueryParser parser = HackyQueryParser.fromSQLQuery(command);
         HackyDDLParser ddlParser = HackyDDLParser.fromCreateTable(configContext.getSQLForTable(parser.getTable()));
-        BTreePage page = lazyPages.get(configContext.getRootPageForTable(parser.getTable())).get();
+        Integer rootPage = configContext.getRootPageForTable(parser.getTable());
+        BTreePage page = lazyPages.get(rootPage).get();
+        List<Integer> pageIndex = List.of(rootPage);
+        if (page.getPageType() == PageType.TABLE_INTERIOR) {
+            pageIndex = page.getCells().stream()
+                    .filter(cell -> cell.cellType() == CellType.TABLE_INTERIOR)
+                    .map(cell -> ((TableInteriorCell) cell).leftChildPointer()).toList();
+        }
 
         if (parser.hasCountOperation()) {
-            System.out.println(page.getCellsCount());
+            System.out.println(pageIndex.stream()
+                    .map(index -> lazyPages.get(index).get().getCellsCount())
+                    .reduce(0, Integer::sum)
+            );
         } else if (!parser.getColsOrFuncs().isEmpty()) {
-            processRecords(page, parser, ddlParser);
+            processRecords(pageIndex, parser, ddlParser);
         } else {
             System.err.println("Support for query: " + command + " not implemented!");
         }
     }
 
-    private void processRecords(BTreePage page, HackyQueryParser parser, HackyDDLParser ddlParser) {
-        page.getCells().stream()
-                .filter(cell -> cell.cellType() == CellType.TABLE_LEAF)
-                .map(cell -> (TableLeafCell) cell)
-                .map(leafCell -> filterAndFormatRecord(leafCell, parser, ddlParser))
-                .filter(str -> !str.isEmpty())
-                .forEach(System.out::println);
+    private void processRecords(List<Integer> pageIndex, HackyQueryParser parser, HackyDDLParser ddlParser) {
+        pageIndex.forEach(index -> {
+            lazyPages.get(index).get().getCells().stream()
+                    .filter(cell -> cell.cellType() == CellType.TABLE_LEAF)
+                    .map(cell -> (TableLeafCell) cell)
+                    .map(leafCell -> filterAndFormatRecord(leafCell, parser, ddlParser))
+                    .filter(str -> !str.isEmpty())
+                    .forEach(System.out::println);
+        });
+
     }
 
     private String filterAndFormatRecord(TableLeafCell leafCell, HackyQueryParser parser, HackyDDLParser ddlParser) {
@@ -51,11 +64,14 @@ public class SelectQueryHandler {
 
         if (where.test(rec)) {
             for (String colName : parser.getColsOrFuncs()) {
-                colName = colName.toLowerCase();
-                int index = ddlParser.indexForColumn(colName);
-                ColumnType type = ddlParser.getColumnType(colName);
-                Column col = rec.getColumnForIndex(index);
-                vals.add(String.valueOf(col.getValueAs(type, configContext.getCharset())));
+                if (ddlParser.isRowIdAlias(colName)) {
+                    vals.add(String.valueOf(leafCell.rowID().getValue()));
+                } else {
+                    int index = ddlParser.indexForColumn(colName);
+                    ColumnType type = ddlParser.getColumnType(colName);
+                    Column col = rec.getColumnForIndex(index);
+                    vals.add(String.valueOf(col.getValueAs(type, configContext.getCharset())));
+                }
             }
         }
         return String.join("|", vals);
@@ -75,7 +91,7 @@ public class SelectQueryHandler {
         }
 
         return rec -> {
-            String whereCol = condition.column().toLowerCase();
+            String whereCol = condition.column();
             int index = ddlParser.indexForColumn(whereCol);
             ColumnType type = ddlParser.getColumnType(whereCol);
             Column col = rec.getColumnForIndex(index);

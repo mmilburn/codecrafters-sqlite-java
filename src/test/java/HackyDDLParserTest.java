@@ -72,5 +72,24 @@ public class HackyDDLParserTest {
         Assert.assertTrue(parser.getColumns().contains("iD"));
         Assert.assertTrue(parser.getColumns().contains("nAmE"));
     }
-}
 
+    // ✅ New Tests for Rowid Alias Detection
+    @DataProvider(name = "rowIdAliasTests")
+    public Object[][] rowIdAliasTests() {
+        return new Object[][]{
+                {"CREATE TABLE test (id integer primary key, name text)", "id", true},
+                {"CREATE TABLE test (name text, id integer primary key)", "id", true},
+                {"CREATE TABLE test (uid integer primary key, name text)", "uid", true},
+                {"CREATE TABLE test (id integer primary key desc, name text)", "id", false},
+                {"CREATE TABLE test (id integer unique, name text)", "id", false},
+                {"CREATE TABLE test (id integer, name text)", "id", false},
+        };
+    }
+
+    @Test(dataProvider = "rowIdAliasTests")
+    public void testRowIdAliasDetection(String ddl, String columnName, boolean expectedIsRowId) {
+        HackyDDLParser parser = HackyDDLParser.fromCreateTable(ddl);
+        Assert.assertEquals(parser.isRowIdAlias(columnName), expectedIsRowId,
+                "Column '" + columnName + "' should" + (expectedIsRowId ? "" : " not") + " be aliased to rowid.");
+    }
+}

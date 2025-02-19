@@ -107,6 +107,10 @@ public class SerialType {
         return val > 11 && val % 2 == 0;
     }
 
+    public boolean isNull() {
+        return varint.getValue() == 0;
+    }
+
     public Varint getVarint() {
         return varint;
     }

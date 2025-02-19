@@ -9,15 +9,18 @@ public class HackyDDLParser {
     private static final Pattern CREATE_TABLE_PATTERN = Pattern.compile(
             "(?i)create table\\s+[\"']?([A-Za-z_][A-Za-z0-9_]*)[\"']?\\s*\\((.*)\\)"
     );
+    private static final Pattern ROW_ID_ALIAS = Pattern.compile("(?i)\\binteger primary key\\b(?!\\s+desc)");
 
     private final String table;
     private final Map<String, Integer> colToIndex;
     private final Map<String, ColumnType> columnTypes;
+    private final String rowIdAlias;
 
-    private HackyDDLParser(String table, Map<String, Integer> colToIndex, Map<String, ColumnType> columnTypes) {
+    private HackyDDLParser(String table, Map<String, Integer> colToIndex, Map<String, ColumnType> columnTypes, String rowIdAlias) {
         this.table = table;
         this.colToIndex = colToIndex;
         this.columnTypes = columnTypes;
+        this.rowIdAlias = rowIdAlias;
     }
 
     public static HackyDDLParser fromCreateTable(String ddl) {
@@ -32,6 +35,7 @@ public class HackyDDLParser {
         AtomicInteger index = new AtomicInteger(0);
         Map<String, Integer> colOrder = new LinkedHashMap<>();
         Map<String, ColumnType> columnTypeMap = new LinkedHashMap<>();
+        String rowIdAlias = null;
 
         String[] columns = columnDefinitions.split(",");
 
@@ -42,13 +46,17 @@ public class HackyDDLParser {
             }
 
             String columnName = parts[0].trim();
-            String columnTypeStr = parts[1].trim().split("\\s+", 2)[0]; // Extract first part of type
+            String columnTypeStr = parts[1].trim(); // Keep the whole type definition for checking
+
+            if (ROW_ID_ALIAS.matcher(columnTypeStr).find()) {
+                rowIdAlias = columnName;
+            }
 
             colOrder.put(columnName, index.getAndIncrement());
-            columnTypeMap.put(columnName, ColumnType.fromSQLType(columnTypeStr));
+            columnTypeMap.put(columnName, ColumnType.fromSQLType(columnTypeStr.split("\\s+")[0]));
         }
 
-        return new HackyDDLParser(table, colOrder, columnTypeMap);
+        return new HackyDDLParser(table, colOrder, columnTypeMap, rowIdAlias);
     }
 
     public String getTable() {
@@ -67,12 +75,17 @@ public class HackyDDLParser {
         return columnTypes.getOrDefault(columnName, ColumnType.TEXT);
     }
 
+    public boolean isRowIdAlias(String columnName) {
+        return rowIdAlias != null && rowIdAlias.equalsIgnoreCase(columnName);
+    }
+
     @Override
     public String toString() {
         return "HackyDDLParser{" +
                 "table='" + table + '\'' +
                 ", colToIndex=" + colToIndex +
                 ", columnTypes=" + columnTypes +
+                ", rowIdAlias='" + rowIdAlias + '\'' +
                 '}';
     }
 }

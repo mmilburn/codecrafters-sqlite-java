@@ -43,6 +43,11 @@ public class RegularPage implements BTreePage {
     }
 
     @Override
+    public PageType getPageType() {
+        return pageHeader.getPageType();
+    }
+
+    @Override
     public short[] getCellPointers() {
         return cellPointers;
     }
