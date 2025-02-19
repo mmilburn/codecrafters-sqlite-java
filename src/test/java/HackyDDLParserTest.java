@@ -25,13 +25,44 @@ public class HackyDDLParserTest {
                         Set.of("id", "name", "age", "address")},
                 {"CREATE TABLE \"superheroes\" (id integer primary key autoincrement, name text not null, eye_color " +
                         "text, hair_color text, appearance_count integer, first_appearance text, first_appearance_year" +
-                        " text)", "superheroes", Set.of("id", "name", "eye_color", "hair_color", "appearance_count",
+                        " text)", "\"superheroes\"", Set.of("id", "name", "eye_color", "hair_color", "appearance_count",
                         "first_appearance", "first_appearance_year")}
         };
     }
 
     @Test(dataProvider = "validDDLStatements")
     public void testValidDDLParsing(String ddl, String expectedTable, Set<String> expectedColumns) {
+        HackyDDLParser parser = HackyDDLParser.fromCreateTable(ddl);
+
+        Assert.assertEquals(parser.getTable(), expectedTable, "Table name should match");
+        Assert.assertEquals(parser.getColumns(), expectedColumns, "Column names should match");
+    }
+
+    @DataProvider(name = "multiLineDDLStatements")
+    public Object[][] multiLineDDLStatements() {
+        return new Object[][]{
+                {"""
+                CREATE TABLE companies
+                (
+                    id integer primary key autoincrement,
+                    name text,
+                    domain text,
+                    year_founded text,
+                    industry text,
+                    "size range" text,
+                    locality text,
+                    country text,
+                    current_employees text,
+                    total_employees text
+                )""",
+                        "companies",
+                        Set.of("id", "name", "domain", "year_founded", "industry", "\"size range\"", "locality",
+                                "country", "current_employees", "total_employees")}
+        };
+    }
+
+    @Test(dataProvider = "multiLineDDLStatements")
+    public void testMultiLineDDLParsing(String ddl, String expectedTable, Set<String> expectedColumns) {
         HackyDDLParser parser = HackyDDLParser.fromCreateTable(ddl);
 
         Assert.assertEquals(parser.getTable(), expectedTable, "Table name should match");

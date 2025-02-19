@@ -7,7 +7,11 @@ import java.util.regex.Pattern;
 
 public class HackyDDLParser {
     private static final Pattern CREATE_TABLE_PATTERN = Pattern.compile(
-            "(?i)create table\\s+[\"']?([A-Za-z_][A-Za-z0-9_]*)[\"']?\\s*\\((.*)\\)"
+            "(?i)create table\\s+(\"[^\"]+\"|'[^']+'|[A-Za-z_][A-Za-z0-9_]*)\\s*\\((.*)\\)"
+    );
+
+    private static final Pattern COLUMN_PATTERN = Pattern.compile(
+            "(?i)\\s*(\"[^\"]+\"|\\w+)\\s+([A-Za-z]+(?:\\s+[A-Za-z]+)*)"
     );
     private static final Pattern ROW_ID_ALIAS = Pattern.compile("(?i)\\binteger primary key\\b(?!\\s+desc)");
 
@@ -24,6 +28,9 @@ public class HackyDDLParser {
     }
 
     public static HackyDDLParser fromCreateTable(String ddl) {
+        //A simple way to deal with multi-line CREATE TABLE statements and odd spacing.
+        ddl = ddl.replaceAll("\\s+", " ").trim();
+
         Matcher matcher = CREATE_TABLE_PATTERN.matcher(ddl);
         if (!matcher.matches()) {
             throw new IllegalArgumentException("Invalid CREATE TABLE statement: " + ddl);
@@ -37,16 +44,11 @@ public class HackyDDLParser {
         Map<String, ColumnType> columnTypeMap = new LinkedHashMap<>();
         String rowIdAlias = null;
 
-        String[] columns = columnDefinitions.split(",");
+        Matcher columnMatcher = COLUMN_PATTERN.matcher(columnDefinitions);
 
-        for (String columnDef : columns) {
-            String[] parts = columnDef.trim().split("\\s+", 2);
-            if (parts.length < 2) {
-                throw new IllegalArgumentException("Invalid column definition: " + columnDef);
-            }
-
-            String columnName = parts[0].trim();
-            String columnTypeStr = parts[1].trim(); // Keep the whole type definition for checking
+        while (columnMatcher.find()) {
+            String columnName = columnMatcher.group(1).trim();
+            String columnTypeStr = columnMatcher.group(2).trim();
 
             if (ROW_ID_ALIAS.matcher(columnTypeStr).find()) {
                 rowIdAlias = columnName;
