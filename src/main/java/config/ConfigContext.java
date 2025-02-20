@@ -35,7 +35,7 @@ public class ConfigContext {
         return charset;
     }
 
-    public long getTableCount() {
+    public int getTableCount() {
         return sqliteSchema.getTableCount();
     }
 
@@ -49,6 +49,22 @@ public class ConfigContext {
 
     public String getSQLForTable(String tableName) {
         return sqliteSchema.getSQLForTable(tableName);
+    }
+
+    public int getIndexCount() {
+        return sqliteSchema.getIndexCount();
+    }
+
+    public List<String> getIndexNames() {
+        return sqliteSchema.getIndexNames();
+    }
+
+    public Integer getRootPageForIndex(String indexName) {
+        return sqliteSchema.getRootPageForIndex(indexName);
+    }
+
+    public String getSQLForIndex(String indexName) {
+        return sqliteSchema.getSQLForIndex(indexName);
     }
 
     public static class Builder {

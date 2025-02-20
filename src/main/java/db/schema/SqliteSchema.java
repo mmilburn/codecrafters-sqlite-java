@@ -69,22 +69,25 @@ public class SqliteSchema {
         return schemaTable;
     }
 
-    public long getTableCount() {
-        return schemaTable.get(SchemaType.TABLE).size();
+    private int getSchemaTypeCount(SchemaType type) {
+        return schemaTable.get(type).size();
     }
 
-    public List<String> getTableNames() {
+    private List<String> getSchemaTypeNames(SchemaType type) {
+        Map<String, SchemaEntry> entries = schemaTable.get(type);
+        if (entries == null) {
+            return List.of(); // Return an empty list if type is missing
+        }
         //There's an implicit requirement that we print out the tables in a sorted order.
-        return schemaTable.get(SchemaType.TABLE).keySet().stream().sorted().toList();
-
+        return entries.keySet().stream().sorted().toList();
     }
 
-    public int getRootPageForTable(String tableName) {
-        SchemaEntry entry = schemaTable.get(SchemaType.TABLE).get(tableName);
+    private int getRootPageForSchemaTypeWithName(SchemaType type, String name) {
+        SchemaEntry entry = schemaTable.get(type).get(name);
         if (entry != null) {
             Integer rootPage = entry.getRootPage();
             if (rootPage == null || rootPage == 0) {
-                System.err.println("Warning: Table " + tableName + " has no valid root page.");
+                System.err.println("Warning: " + type + " " + name + " has no valid root page.");
                 return -1;
             }
             return rootPage;
@@ -92,11 +95,43 @@ public class SqliteSchema {
         return -1;
     }
 
-    public String getSQLForTable(String tableName) {
-        SchemaEntry entry = schemaTable.get(SchemaType.TABLE).get(tableName);
+    private String getSQLForSchemaTypeWithName(SchemaType type, String name) {
+        SchemaEntry entry = schemaTable.get(type).get(name);
         if (entry != null) {
             return entry.getSql();
         }
         return "";
+    }
+
+    public int getTableCount() {
+        return getSchemaTypeCount(SchemaType.TABLE);
+    }
+
+    public List<String> getTableNames() {
+        return getSchemaTypeNames(SchemaType.TABLE);
+    }
+
+    public int getRootPageForTable(String tableName) {
+        return getRootPageForSchemaTypeWithName(SchemaType.TABLE, tableName);
+    }
+
+    public String getSQLForTable(String tableName) {
+        return getSQLForSchemaTypeWithName(SchemaType.TABLE, tableName);
+    }
+
+    public int getIndexCount() {
+        return getSchemaTypeCount(SchemaType.INDEX);
+    }
+
+    public List<String> getIndexNames() {
+        return getSchemaTypeNames(SchemaType.INDEX);
+    }
+
+    public int getRootPageForIndex(String indexName) {
+        return getRootPageForSchemaTypeWithName(SchemaType.INDEX, indexName);
+    }
+
+    public String getSQLForIndex(String indexName) {
+        return getSQLForSchemaTypeWithName(SchemaType.INDEX, indexName);
     }
 }
