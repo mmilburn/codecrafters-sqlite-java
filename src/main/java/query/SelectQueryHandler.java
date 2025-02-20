@@ -13,14 +13,11 @@ import db.schema.ddl.HackyCreateTableParser;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 public class SelectQueryHandler {
 
     private final ConfigContext configContext;
-    private final Map<Integer, Supplier<BTreePage>> lazyPages;
     //Queries we should support:
     //"SELECT COUNT(*) FROM apples"
     //"SELECT name FROM apples"
@@ -29,9 +26,8 @@ public class SelectQueryHandler {
     //"SELECT id, name FROM superheroes WHERE eye_color = 'Pink Eyes'"
     //Output from multiple columns should be pipe delimited.
 
-    public SelectQueryHandler(ConfigContext configContext, Map<Integer, Supplier<BTreePage>> lazyPages) {
+    public SelectQueryHandler(ConfigContext configContext) {
         this.configContext = configContext;
-        this.lazyPages = lazyPages;
     }
 
     public void executeSelectQuery(String command) {
@@ -48,7 +44,7 @@ public class SelectQueryHandler {
                     queryParser.getTable(), queryParser.getConditions().getFirst().column()
             );
         }
-        BTreePage page = lazyPages.get(rootPage).get();
+        BTreePage page = configContext.getPage(rootPage);
         List<Integer> pageIndex = List.of(rootPage);
         if (page.getPageType() == PageType.TABLE_INTERIOR) {
             pageIndex = page.getCells().stream()
@@ -58,7 +54,7 @@ public class SelectQueryHandler {
 
         if (queryParser.hasCountOperation()) {
             System.out.println(pageIndex.stream()
-                    .map(index -> lazyPages.get(index).get().getCellsCount())
+                    .map(index -> configContext.getPage(index).getCellsCount())
                     .reduce(0, Integer::sum)
             );
         } else if (!queryParser.getColsOrFuncs().isEmpty()) {
@@ -70,7 +66,7 @@ public class SelectQueryHandler {
 
     private void processRecords(List<Integer> pageIndex, HackyQueryParser parser, HackyCreateTableParser ddlParser) {
         pageIndex.forEach(index -> {
-            lazyPages.get(index).get().getCells().stream()
+            configContext.getPage(index).getCells().stream()
                     .filter(cell -> cell.cellType() == CellType.TABLE_LEAF)
                     .map(cell -> (TableLeafCell) cell)
                     .map(leafCell -> filterAndFormatRecord(leafCell, parser, ddlParser))

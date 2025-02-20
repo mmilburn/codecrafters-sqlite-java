@@ -1,27 +1,32 @@
 package config;
 
+import db.btree.BTreePage;
+import db.btree.FirstPage;
+import db.btree.PageListFactory;
 import db.schema.SqliteSchema;
 import db.schema.ddl.HackyCreateTableParser;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
 
 public class ConfigContext {
     private final int pageSize;
     private final int numberOfPages;
     private final Charset charset;
     private final SqliteSchema sqliteSchema;
+    private final Map<Integer, Supplier<BTreePage>> lazyPages;
 
-    private ConfigContext(Builder builder) {
-        this.pageSize = builder.pageSize;
-        this.numberOfPages = builder.numberOfPages;
-        this.charset = builder.charset;
-        this.sqliteSchema = builder.sqliteSchema;
-    }
-
-    public static Builder builder() {
-        return new Builder();
+    public ConfigContext(ByteBuffer databaseFile) {
+        this.lazyPages = PageListFactory.lazyPageMap(databaseFile);
+        FirstPage firstPage = (FirstPage) lazyPages.get(1).get();
+        SQLiteHeader header = firstPage.getSqLiteHeader();
+        this.pageSize = header.getPageSize();
+        this.numberOfPages = header.getNumberOfPages();
+        this.charset = header.getCharset();
+        this.sqliteSchema = firstPage.getSqliteSchema();
     }
 
     public int getPageSize() {
@@ -76,41 +81,7 @@ public class ConfigContext {
         return sqliteSchema.getSQLForIndex(indexName);
     }
 
-    public static class Builder {
-        private int pageSize;
-        private int numberOfPages;
-        private Charset charset = StandardCharsets.UTF_8;
-        private SqliteSchema sqliteSchema;
-
-        public Builder withConfigOptionsFromHeader(SQLiteHeader header) {
-            this.pageSize = header.getPageSize();
-            this.numberOfPages = header.getNumberOfPages();
-            this.charset = header.getCharset();
-            return this;
-        }
-
-        public Builder withPageSize(int pageSize) {
-            this.pageSize = pageSize;
-            return this;
-        }
-
-        public Builder withNumberOfPages(int numberOfPages) {
-            this.numberOfPages = numberOfPages;
-            return this;
-        }
-
-        public Builder withCharset(Charset charset) {
-            this.charset = charset;
-            return this;
-        }
-
-        public Builder withSqliteSchema(SqliteSchema sqliteSchema) {
-            this.sqliteSchema = sqliteSchema;
-            return this;
-        }
-
-        public ConfigContext build() {
-            return new ConfigContext(this);
-        }
+    public BTreePage getPage(Integer index) {
+        return lazyPages.get(index).get();
     }
 }

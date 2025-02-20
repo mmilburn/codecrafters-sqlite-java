@@ -1,7 +1,4 @@
 import config.ConfigContext;
-import db.btree.BTreePage;
-import db.btree.InitialPage;
-import db.btree.PageListFactory;
 import query.SelectQueryHandler;
 
 import java.io.IOException;
@@ -9,8 +6,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.Map;
-import java.util.function.Supplier;
 
 public class Main {
     public static void main(String[] args) {
@@ -21,11 +16,9 @@ public class Main {
 
         String databaseFilePath = args[0];
         String command = args[1];
-        Map<Integer, Supplier<BTreePage>> lazyPages = PageListFactory.lazyPageMap(getByteBufferFromFile(databaseFilePath));
-        ConfigContext configContext = ((InitialPage) lazyPages.get(1).get()).getConfigContextBuilder().build();
-
+        ConfigContext configContext = new ConfigContext(getByteBufferFromFile(databaseFilePath));
         if (command.toLowerCase().startsWith("select ")) {
-            new SelectQueryHandler(configContext, lazyPages).executeSelectQuery(command);
+            new SelectQueryHandler(configContext).executeSelectQuery(command);
         } else {
             switch (command) {
                 case ".dbinfo" -> {

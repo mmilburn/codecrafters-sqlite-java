@@ -10,7 +10,7 @@ import java.util.function.Supplier;
 public class PageListFactory {
     public static Map<Integer, Supplier<BTreePage>> lazyPageMap(ByteBuffer data) {
         Map<Integer, Supplier<BTreePage>> pageSuppliers = new HashMap<>();
-        InitialPage firstPage = InitialPage.fromByteBuffer(data);
+        FirstPage firstPage = FirstPage.fromByteBuffer(data);
         pageSuppliers.put(1, () -> firstPage);
         int pageSize = firstPage.getSqLiteHeader().getPageSize();
         int totalPages = firstPage.getSqLiteHeader().getNumberOfPages();
