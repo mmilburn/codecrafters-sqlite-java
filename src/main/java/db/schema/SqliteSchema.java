@@ -22,15 +22,11 @@ public class SqliteSchema {
 
     public static SqliteSchema fromCellsWithCharset(List<Cell> cells, Charset encoding) {
         Map<SchemaType, Map<String, SchemaEntry>> tables = cells.stream()
-                // Only process TABLE_LEAF cells.
                 .filter(cell -> cell.cellType() == CellType.TABLE_LEAF)
-                // Cast to db.btree.cell.TableLeafCell.
                 .map(cell -> (TableLeafCell) cell)
-                // Filter out any cells that don't have exactly 5 columns, logging them.
                 .filter(leafCell -> {
                     return leafCell.initialPayload().getNumberOfColumns() == 5;
                 })
-                // Map each db.btree.cell.TableLeafCell to a db.schema.SchemaEntry.
                 .map(leafCell -> {
                     Record rec = leafCell.initialPayload();
                     SchemaType schemaType = SchemaType.from(rec.getColumnForIndex(0).getAsString(encoding));
@@ -40,7 +36,6 @@ public class SqliteSchema {
                     String sql = rec.getColumnForIndex(4).getAsString(encoding);
                     return new SchemaEntry(schemaType, schemaName, tableName, rootPage, sql);
                 })
-                // Group by db.schema.SchemaType then map by tableName.
                 .collect(Collectors.groupingBy(
                         SchemaEntry::getType,
                         HashMap::new,
@@ -52,7 +47,6 @@ public class SqliteSchema {
                         )
                 ));
 
-        // Convert to a HashMap of HashMaps.
         HashMap<SchemaType, HashMap<String, SchemaEntry>> schemaTable =
                 tables.entrySet().stream()
                         .collect(Collectors.toMap(
@@ -76,7 +70,7 @@ public class SqliteSchema {
     private List<String> getSchemaTypeNames(SchemaType type) {
         Map<String, SchemaEntry> entries = schemaTable.get(type);
         if (entries == null) {
-            return List.of(); // Return an empty list if type is missing
+            return List.of();
         }
         //There's an implicit requirement that we print out the tables in a sorted order.
         return entries.keySet().stream().sorted().toList();
