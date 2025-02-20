@@ -13,17 +13,17 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class SqliteSchema {
+public class SQLiteSchema {
     private Map<SchemaType, Map<String, SchemaEntry>> schemaTable = new HashMap<>();
     private Map<String, Map<String, Integer>> tableToRootPageForIndexedColumn = new HashMap<>();
 
-    private SqliteSchema(Map<SchemaType, Map<String, SchemaEntry>> schemaTable, Map<String, Map<String, Integer>> tableToRootPageForIndexedColumn) {
+    private SQLiteSchema(Map<SchemaType, Map<String, SchemaEntry>> schemaTable, Map<String, Map<String, Integer>> tableToRootPageForIndexedColumn) {
         this.schemaTable = schemaTable;
         this.tableToRootPageForIndexedColumn = tableToRootPageForIndexedColumn;
     }
 
 
-    public static SqliteSchema fromCellsWithCharset(List<Cell> cells, Charset encoding) {
+    public static SQLiteSchema fromCellsWithCharset(List<Cell> cells, Charset encoding) {
         Map<SchemaType, Map<String, SchemaEntry>> tables = cells.stream()
                 .filter(cell -> cell.cellType() == CellType.TABLE_LEAF)
                 .map(cell -> (TableLeafCell) cell)
@@ -75,7 +75,7 @@ public class SqliteSchema {
                                 HashMap::new
                         ));
 
-        return new SqliteSchema(schemaTable, tableToRootPageForIndexedColumn);
+        return new SQLiteSchema(schemaTable, tableToRootPageForIndexedColumn);
     }
 
     public Map<SchemaType, Map<String, SchemaEntry>> getSchemaTable() {

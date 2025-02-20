@@ -3,7 +3,7 @@ package config;
 import db.btree.BTreePage;
 import db.btree.FirstPage;
 import db.btree.PageListFactory;
-import db.schema.SqliteSchema;
+import db.schema.SQLiteSchema;
 import db.schema.ddl.HackyCreateTableParser;
 
 import java.nio.ByteBuffer;
@@ -16,7 +16,7 @@ public class ConfigContext {
     private final int pageSize;
     private final int numberOfPages;
     private final Charset charset;
-    private final SqliteSchema sqliteSchema;
+    private final SQLiteSchema sqliteSchema;
     private final Map<Integer, Supplier<BTreePage>> lazyPages;
 
     public ConfigContext(ByteBuffer databaseFile) {

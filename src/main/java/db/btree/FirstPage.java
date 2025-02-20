@@ -3,20 +3,20 @@ package db.btree;
 import config.PageHeader;
 import config.SQLiteHeader;
 import db.btree.cell.Cell;
-import db.schema.SqliteSchema;
+import db.schema.SQLiteSchema;
 
 import java.nio.ByteBuffer;
 import java.util.List;
 
 public class FirstPage implements BTreePage {
     private final SQLiteHeader sqLiteHeader;
-    private final SqliteSchema sqliteSchema;
+    private final SQLiteSchema sqliteSchema;
     private final BTreePage delegate;
 
     private FirstPage(SQLiteHeader header, BTreePage delegate) {
         this.sqLiteHeader = header;
         this.delegate = delegate;
-        this.sqliteSchema = SqliteSchema.fromCellsWithCharset(this.delegate.getCells(), this.sqLiteHeader.getCharset());
+        this.sqliteSchema = SQLiteSchema.fromCellsWithCharset(this.delegate.getCells(), this.sqLiteHeader.getCharset());
     }
 
     public static FirstPage fromByteBuffer(ByteBuffer data) {
@@ -58,7 +58,7 @@ public class FirstPage implements BTreePage {
         return sqLiteHeader;
     }
 
-    public SqliteSchema getSqliteSchema() {
+    public SQLiteSchema getSqliteSchema() {
         return sqliteSchema;
     }
 }
