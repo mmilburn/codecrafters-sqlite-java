@@ -3,7 +3,7 @@ package db.schema.ddl;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class HackyCreateIndexParser {
+public final class HackyCreateIndexParser implements DDLParser {
     private static final Pattern CREATE_INDEX_PATTERN = Pattern.compile(
             "(?i)create\\s+index\\s+(\\w+)\\s+on\\s+(\\w+)\\s*\\(\\s*(\\w+)\\s*\\)"
     );
@@ -18,7 +18,7 @@ public class HackyCreateIndexParser {
         this.columnName = columnName;
     }
 
-    public static HackyCreateIndexParser fromCreateIndex(String ddl) {
+    public static HackyCreateIndexParser fromDDL(String ddl) {
         ddl = ddl.replaceAll("\\s+", " ").trim();
 
         Matcher matcher = CREATE_INDEX_PATTERN.matcher(ddl);
@@ -33,7 +33,8 @@ public class HackyCreateIndexParser {
         return new HackyCreateIndexParser(indexName, tableName, columnName);
     }
 
-    public String getIndexName() {
+    @Override
+    public String getName() {
         return indexName;
     }
 

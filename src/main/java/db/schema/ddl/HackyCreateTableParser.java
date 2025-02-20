@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class HackyCreateTableParser {
+public final class HackyCreateTableParser implements DDLParser {
     private static final Pattern CREATE_TABLE_PATTERN = Pattern.compile(
             "(?i)create table\\s+(\"[^\"]+\"|'[^']+'|[A-Za-z_][A-Za-z0-9_]*)\\s*\\((.*)\\)"
     );
@@ -31,7 +31,7 @@ public class HackyCreateTableParser {
         this.rowIdAlias = rowIdAlias;
     }
 
-    public static HackyCreateTableParser fromCreateTable(String ddl) {
+    public static HackyCreateTableParser fromDDL(String ddl) {
         //A simple way to deal with multi-line CREATE TABLE statements and odd spacing.
         ddl = ddl.replaceAll("\\s+", " ").trim();
 
@@ -65,7 +65,8 @@ public class HackyCreateTableParser {
         return new HackyCreateTableParser(table, colOrder, columnTypeMap, rowIdAlias);
     }
 
-    public String getTable() {
+    @Override
+    public String getName() {
         return table;
     }
 
@@ -73,7 +74,7 @@ public class HackyCreateTableParser {
         return colToIndex.keySet();
     }
 
-    public int indexForColumn(String columnName) {
+    public int ordinalForColumn(String columnName) {
         return colToIndex.getOrDefault(columnName, -1);
     }
 

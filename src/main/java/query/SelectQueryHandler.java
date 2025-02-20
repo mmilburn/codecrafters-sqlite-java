@@ -35,9 +35,9 @@ public class SelectQueryHandler {
     }
 
     public void executeSelectQuery(String command) {
-        HackyQueryParser parser = HackyQueryParser.fromSQLQuery(command);
-        HackyCreateTableParser ddlParser = HackyCreateTableParser.fromCreateTable(configContext.getSQLForTable(parser.getTable()));
-        Integer rootPage = configContext.getRootPageForTable(parser.getTable());
+        HackyQueryParser queryParser = HackyQueryParser.fromSQLQuery(command);
+        HackyCreateTableParser ddlParser = HackyCreateTableParser.fromDDL(configContext.getSQLForTable(queryParser.getTable()));
+        Integer rootPage = configContext.getRootPageForTable(queryParser.getTable());
         BTreePage page = lazyPages.get(rootPage).get();
         List<Integer> pageIndex = List.of(rootPage);
         if (page.getPageType() == PageType.TABLE_INTERIOR) {
@@ -46,13 +46,13 @@ public class SelectQueryHandler {
                     .map(cell -> ((TableInteriorCell) cell).leftChildPointer()).toList();
         }
 
-        if (parser.hasCountOperation()) {
+        if (queryParser.hasCountOperation()) {
             System.out.println(pageIndex.stream()
                     .map(index -> lazyPages.get(index).get().getCellsCount())
                     .reduce(0, Integer::sum)
             );
-        } else if (!parser.getColsOrFuncs().isEmpty()) {
-            processRecords(pageIndex, parser, ddlParser);
+        } else if (!queryParser.getColsOrFuncs().isEmpty()) {
+            processRecords(pageIndex, queryParser, ddlParser);
         } else {
             System.err.println("Support for query: " + command + " not implemented!");
         }
@@ -80,7 +80,7 @@ public class SelectQueryHandler {
                 if (ddlParser.isRowIdAlias(colName)) {
                     vals.add(String.valueOf(leafCell.rowID().getValue()));
                 } else {
-                    int index = ddlParser.indexForColumn(colName);
+                    int index = ddlParser.ordinalForColumn(colName);
                     ColumnType type = ddlParser.getColumnType(colName);
                     Column col = rec.getColumnForIndex(index);
                     vals.add(String.valueOf(col.getValueAs(type, configContext.getCharset())));
@@ -105,7 +105,7 @@ public class SelectQueryHandler {
 
         return rec -> {
             String whereCol = condition.column();
-            int index = ddlParser.indexForColumn(whereCol);
+            int index = ddlParser.ordinalForColumn(whereCol);
             ColumnType type = ddlParser.getColumnType(whereCol);
             Column col = rec.getColumnForIndex(index);
             return String.valueOf(col.getValueAs(type, configContext.getCharset())).equals(condition.value());

@@ -34,9 +34,9 @@ public class HackyCreateTableParserTest {
 
     @Test(dataProvider = "validDDLStatements")
     public void testValidDDLParsing(String ddl, String expectedTable, Set<String> expectedColumns) {
-        HackyCreateTableParser parser = HackyCreateTableParser.fromCreateTable(ddl);
+        HackyCreateTableParser parser = HackyCreateTableParser.fromDDL(ddl);
 
-        Assert.assertEquals(parser.getTable(), expectedTable, "Table name should match");
+        Assert.assertEquals(parser.getName(), expectedTable, "Table name should match");
         Assert.assertEquals(parser.getColumns(), expectedColumns, "db.data.Column names should match");
     }
 
@@ -65,21 +65,21 @@ public class HackyCreateTableParserTest {
 
     @Test(dataProvider = "multiLineDDLStatements")
     public void testMultiLineDDLParsing(String ddl, String expectedTable, Set<String> expectedColumns) {
-        HackyCreateTableParser parser = HackyCreateTableParser.fromCreateTable(ddl);
+        HackyCreateTableParser parser = HackyCreateTableParser.fromDDL(ddl);
 
-        Assert.assertEquals(parser.getTable(), expectedTable, "Table name should match");
+        Assert.assertEquals(parser.getName(), expectedTable, "Table name should match");
         Assert.assertEquals(parser.getColumns(), expectedColumns, "db.data.Column names should match");
     }
 
     @Test
     public void testColumnOrder() {
-        HackyCreateTableParser parser = HackyCreateTableParser.fromCreateTable("CREATE TABLE test (id integer primary key, name text, age integer, address text)");
+        HackyCreateTableParser parser = HackyCreateTableParser.fromDDL("CREATE TABLE test (id integer primary key, name text, age integer, address text)");
 
-        Assert.assertEquals(parser.indexForColumn("id"), 0);
-        Assert.assertEquals(parser.indexForColumn("name"), 1);
-        Assert.assertEquals(parser.indexForColumn("age"), 2);
-        Assert.assertEquals(parser.indexForColumn("address"), 3);
-        Assert.assertEquals(parser.indexForColumn("missing_column"), -1, "Should return -1 for non-existent columns");
+        Assert.assertEquals(parser.ordinalForColumn("id"), 0);
+        Assert.assertEquals(parser.ordinalForColumn("name"), 1);
+        Assert.assertEquals(parser.ordinalForColumn("age"), 2);
+        Assert.assertEquals(parser.ordinalForColumn("address"), 3);
+        Assert.assertEquals(parser.ordinalForColumn("missing_column"), -1, "Should return -1 for non-existent columns");
     }
 
     @DataProvider(name = "invalidDDLStatements")
@@ -95,13 +95,13 @@ public class HackyCreateTableParserTest {
 
     @Test(dataProvider = "invalidDDLStatements", expectedExceptions = IllegalArgumentException.class)
     public void testInvalidDDLParsing(String invalidDDL) {
-        HackyCreateTableParser.fromCreateTable(invalidDDL);
+        HackyCreateTableParser.fromDDL(invalidDDL);
     }
 
     @Test
     public void testCaseInsensitiveParsing() {
-        HackyCreateTableParser parser = HackyCreateTableParser.fromCreateTable("cReAtE tAbLe TeSt (iD iNtEgEr pRiMaRy kEy, nAmE tExT)");
-        Assert.assertEquals(parser.getTable(), "TeSt", "Table name should preserve case");
+        HackyCreateTableParser parser = HackyCreateTableParser.fromDDL("cReAtE tAbLe TeSt (iD iNtEgEr pRiMaRy kEy, nAmE tExT)");
+        Assert.assertEquals(parser.getName(), "TeSt", "Table name should preserve case");
         Assert.assertTrue(parser.getColumns().contains("iD"));
         Assert.assertTrue(parser.getColumns().contains("nAmE"));
     }
@@ -121,7 +121,7 @@ public class HackyCreateTableParserTest {
 
     @Test(dataProvider = "rowIdAliasTests")
     public void testRowIdAliasDetection(String ddl, String columnName, boolean expectedIsRowId) {
-        HackyCreateTableParser parser = HackyCreateTableParser.fromCreateTable(ddl);
+        HackyCreateTableParser parser = HackyCreateTableParser.fromDDL(ddl);
         Assert.assertEquals(parser.isRowIdAlias(columnName), expectedIsRowId,
                 "db.data.Column '" + columnName + "' should" + (expectedIsRowId ? "" : " not") + " be aliased to rowid.");
     }
