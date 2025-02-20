@@ -3,7 +3,7 @@ package db.schema;
 import db.btree.cell.Cell;
 import db.btree.cell.CellType;
 import db.btree.cell.TableLeafCell;
-import db.data.Record;
+import db.data.TableRecord;
 import db.schema.ddl.HackyCreateTableParser;
 
 import java.nio.charset.Charset;
@@ -31,7 +31,7 @@ public class SQLiteSchema {
                     return leafCell.initialPayload().getNumberOfColumns() == 5;
                 })
                 .map(leafCell -> {
-                    Record rec = leafCell.initialPayload();
+                    TableRecord rec = leafCell.initialPayload();
                     SchemaType schemaType = SchemaType.from(rec.getColumnForIndex(0).getAsString(encoding));
                     String schemaName = rec.getColumnForIndex(1).getAsString(encoding);
                     String tableName = rec.getColumnForIndex(2).getAsString(encoding);

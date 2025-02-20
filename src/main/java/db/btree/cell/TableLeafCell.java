@@ -1,6 +1,6 @@
 package db.btree.cell;
 
-import db.data.Record;
+import db.data.TableRecord;
 import db.data.Varint;
 
 import java.nio.ByteBuffer;
@@ -8,13 +8,13 @@ import java.nio.ByteBuffer;
 public record TableLeafCell(
         Varint recordSize,
         Varint rowID,
-        db.data.Record initialPayload,
+        TableRecord initialPayload,
         int firstOverflowPage
 ) implements Cell {
     public static TableLeafCell fromByteBuffer(ByteBuffer data) {
         Varint recordSize = Varint.fromByteBuffer(data);
         Varint rowId = Varint.fromByteBuffer(data);
-        Record payload = Record.fromByteBuffer(data.duplicate().limit(data.position() + recordSize.asInt()));
+        TableRecord payload = TableRecord.fromByteBuffer(data.duplicate().limit(data.position() + recordSize.asInt()));
         //int overflow = data.getInt();
         //Overflow is currently ignored.
         return new TableLeafCell(recordSize, rowId, payload, -1);
@@ -36,7 +36,7 @@ public record TableLeafCell(
     }
 
     @Override
-    public Record initialPayload() {
+    public TableRecord initialPayload() {
         return initialPayload;
     }
 

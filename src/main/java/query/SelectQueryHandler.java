@@ -8,7 +8,7 @@ import db.btree.cell.TableInteriorCell;
 import db.btree.cell.TableLeafCell;
 import db.data.Column;
 import db.data.ColumnType;
-import db.data.Record;
+import db.data.TableRecord;
 import db.schema.ddl.HackyCreateTableParser;
 
 import java.util.ArrayList;
@@ -77,9 +77,9 @@ public class SelectQueryHandler {
     }
 
     private String filterAndFormatRecord(TableLeafCell leafCell, HackyQueryParser parser, HackyCreateTableParser ddlParser) {
-        Predicate<Record> where = createWherePredicate(parser, ddlParser);
+        Predicate<TableRecord> where = createWherePredicate(parser, ddlParser);
         List<String> vals = new ArrayList<>();
-        Record rec = leafCell.initialPayload();
+        TableRecord rec = leafCell.initialPayload();
 
         if (where.test(rec)) {
             for (String colName : parser.getColsOrFuncs()) {
@@ -96,7 +96,7 @@ public class SelectQueryHandler {
         return String.join("|", vals);
     }
 
-    private Predicate<Record> createWherePredicate(HackyQueryParser parser, HackyCreateTableParser ddlParser) {
+    private Predicate<TableRecord> createWherePredicate(HackyQueryParser parser, HackyCreateTableParser ddlParser) {
         if (parser.getConditions().isEmpty()) {
             return rec -> true;
         }
