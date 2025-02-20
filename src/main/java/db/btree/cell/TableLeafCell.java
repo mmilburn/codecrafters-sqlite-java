@@ -14,7 +14,7 @@ public record TableLeafCell(
     public static TableLeafCell fromByteBuffer(ByteBuffer data) {
         Varint recordSize = Varint.fromByteBuffer(data);
         Varint rowId = Varint.fromByteBuffer(data);
-        db.data.Record payload = db.data.Record.fromByteBuffer(data.duplicate().limit(data.position() + recordSize.asInt()));
+        Record payload = Record.fromByteBuffer(data.duplicate().limit(data.position() + recordSize.asInt()));
         //int overflow = data.getInt();
         //Overflow is currently ignored.
         return new TableLeafCell(recordSize, rowId, payload, -1);

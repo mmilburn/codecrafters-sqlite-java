@@ -1,19 +1,19 @@
 package db.btree.cell;
 
+import db.data.Record;
 import db.data.Varint;
 
 import java.nio.ByteBuffer;
 
 public record IndexLeafCell(
         Varint payloadSize,
-        byte[] initialPayload,
+        Record initialPayload,
         int firstOverflowPage
 ) implements Cell {
 
     public static IndexLeafCell fromByteBuffer(ByteBuffer data) {
         Varint size = Varint.fromByteBuffer(data);
-        byte[] payload = new byte[size.asInt()];
-        data.get(payload);
+        Record payload = Record.fromByteBuffer(data.duplicate().limit(data.position() + size.asInt()));
         //Overflow ignored.
         return new IndexLeafCell(size, payload, -1);
     }
