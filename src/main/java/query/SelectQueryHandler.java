@@ -36,8 +36,18 @@ public class SelectQueryHandler {
 
     public void executeSelectQuery(String command) {
         HackyQueryParser queryParser = HackyQueryParser.fromSQLQuery(command);
-        HackyCreateTableParser ddlParser = HackyCreateTableParser.fromDDL(configContext.getSQLForTable(queryParser.getTable()));
+        HackyCreateTableParser ddlParser = configContext.getParserForTable(queryParser.getTable());
+        if (ddlParser == null) {
+            System.err.println("Couldn't get table parser for: " + queryParser.getTable());
+            return;
+        }
         Integer rootPage = configContext.getRootPageForTable(queryParser.getTable());
+        Integer rootPageForIndex = -1;
+        if (!queryParser.getConditions().isEmpty()) {
+            rootPageForIndex = configContext.getRootPageForIndexedColumn(
+                    queryParser.getTable(), queryParser.getConditions().getFirst().column()
+            );
+        }
         BTreePage page = lazyPages.get(rootPage).get();
         List<Integer> pageIndex = List.of(rootPage);
         if (page.getPageType() == PageType.TABLE_INTERIOR) {

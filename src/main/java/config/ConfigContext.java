@@ -1,6 +1,7 @@
 package config;
 
 import db.schema.SqliteSchema;
+import db.schema.ddl.HackyCreateTableParser;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -45,6 +46,14 @@ public class ConfigContext {
 
     public Integer getRootPageForTable(String tableName) {
         return sqliteSchema.getRootPageForTable(tableName);
+    }
+
+    public Integer getRootPageForIndexedColumn(String tableName, String columnName) {
+        return sqliteSchema.getRootPageForIndexedColumn(tableName, columnName);
+    }
+
+    public HackyCreateTableParser getParserForTable(String tableName) {
+        return sqliteSchema.getParserForTable(tableName);
     }
 
     public String getSQLForTable(String tableName) {

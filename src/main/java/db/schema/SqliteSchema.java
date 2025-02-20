@@ -4,6 +4,7 @@ import db.btree.cell.Cell;
 import db.btree.cell.CellType;
 import db.btree.cell.TableLeafCell;
 import db.data.Record;
+import db.schema.ddl.HackyCreateTableParser;
 
 import java.nio.charset.Charset;
 import java.util.HashMap;
@@ -13,10 +14,12 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class SqliteSchema {
-    private HashMap<SchemaType, HashMap<String, SchemaEntry>> schemaTable = new HashMap<>();
+    private Map<SchemaType, Map<String, SchemaEntry>> schemaTable = new HashMap<>();
+    private Map<String, Map<String, Integer>> tableToRootPageForIndexedColumn = new HashMap<>();
 
-    private SqliteSchema(HashMap<SchemaType, HashMap<String, SchemaEntry>> schemaTable) {
+    private SqliteSchema(Map<SchemaType, Map<String, SchemaEntry>> schemaTable, Map<String, Map<String, Integer>> tableToRootPageForIndexedColumn) {
         this.schemaTable = schemaTable;
+        this.tableToRootPageForIndexedColumn = tableToRootPageForIndexedColumn;
     }
 
 
@@ -47,7 +50,7 @@ public class SqliteSchema {
                         )
                 ));
 
-        HashMap<SchemaType, HashMap<String, SchemaEntry>> schemaTable =
+        Map<SchemaType, Map<String, SchemaEntry>> schemaTable =
                 tables.entrySet().stream()
                         .collect(Collectors.toMap(
                                 Map.Entry::getKey,
@@ -56,10 +59,26 @@ public class SqliteSchema {
                                 HashMap::new
                         ));
 
-        return new SqliteSchema(schemaTable);
+        Map<String, Map<String, Integer>> tableToRootPageForIndexedColumn =
+                schemaTable.getOrDefault(SchemaType.TABLE, Map.of()).keySet().stream()
+                        .collect(Collectors.toMap(
+                                Function.identity(),
+                                table -> schemaTable.getOrDefault(SchemaType.INDEX, Map.of()).values().stream()
+                                        .filter(index -> index.getTableName().equalsIgnoreCase(table))
+                                        .collect(Collectors.toMap(
+                                                index -> index.getIndexParser().getColumnName(),
+                                                SchemaEntry::getRootPage,
+                                                (existing, replacement) -> existing,
+                                                HashMap::new
+                                        )),
+                                (existing, replacement) -> existing,
+                                HashMap::new
+                        ));
+
+        return new SqliteSchema(schemaTable, tableToRootPageForIndexedColumn);
     }
 
-    public HashMap<SchemaType, HashMap<String, SchemaEntry>> getSchemaTable() {
+    public Map<SchemaType, Map<String, SchemaEntry>> getSchemaTable() {
         return schemaTable;
     }
 
@@ -113,6 +132,14 @@ public class SqliteSchema {
         return getSQLForSchemaTypeWithName(SchemaType.TABLE, tableName);
     }
 
+    public HackyCreateTableParser getParserForTable(String tableName) {
+        SchemaEntry entry = schemaTable.get(SchemaType.TABLE).get(tableName);
+        if (entry != null) {
+            return entry.getTableParser();
+        }
+        return null;
+    }
+
     public int getIndexCount() {
         return getSchemaTypeCount(SchemaType.INDEX);
     }
@@ -127,5 +154,11 @@ public class SqliteSchema {
 
     public String getSQLForIndex(String indexName) {
         return getSQLForSchemaTypeWithName(SchemaType.INDEX, indexName);
+    }
+
+    public Integer getRootPageForIndexedColumn(String tableName, String columnName) {
+        return tableToRootPageForIndexedColumn
+                .getOrDefault(tableName, Map.of())
+                .getOrDefault(columnName, -1);
     }
 }
