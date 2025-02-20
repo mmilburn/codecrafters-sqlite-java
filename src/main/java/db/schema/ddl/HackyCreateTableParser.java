@@ -1,4 +1,4 @@
-package db.schema;
+package db.schema.ddl;
 
 import db.data.ColumnType;
 
@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class HackyDDLParser {
+public class HackyCreateTableParser {
     private static final Pattern CREATE_TABLE_PATTERN = Pattern.compile(
             "(?i)create table\\s+(\"[^\"]+\"|'[^']+'|[A-Za-z_][A-Za-z0-9_]*)\\s*\\((.*)\\)"
     );
@@ -24,14 +24,14 @@ public class HackyDDLParser {
     private final Map<String, ColumnType> columnTypes;
     private final String rowIdAlias;
 
-    private HackyDDLParser(String table, Map<String, Integer> colToIndex, Map<String, ColumnType> columnTypes, String rowIdAlias) {
+    private HackyCreateTableParser(String table, Map<String, Integer> colToIndex, Map<String, ColumnType> columnTypes, String rowIdAlias) {
         this.table = table;
         this.colToIndex = colToIndex;
         this.columnTypes = columnTypes;
         this.rowIdAlias = rowIdAlias;
     }
 
-    public static HackyDDLParser fromCreateTable(String ddl) {
+    public static HackyCreateTableParser fromCreateTable(String ddl) {
         //A simple way to deal with multi-line CREATE TABLE statements and odd spacing.
         ddl = ddl.replaceAll("\\s+", " ").trim();
 
@@ -62,7 +62,7 @@ public class HackyDDLParser {
             columnTypeMap.put(columnName, ColumnType.fromSQLType(columnTypeStr.split("\\s+")[0]));
         }
 
-        return new HackyDDLParser(table, colOrder, columnTypeMap, rowIdAlias);
+        return new HackyCreateTableParser(table, colOrder, columnTypeMap, rowIdAlias);
     }
 
     public String getTable() {

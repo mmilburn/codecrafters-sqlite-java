@@ -1,4 +1,4 @@
-package db.schema;
+package db.schema.ddl;
 
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
@@ -6,7 +6,7 @@ import org.testng.annotations.Test;
 
 import java.util.Set;
 
-public class HackyDDLParserTest {
+public class HackyCreateTableParserTest {
 
     @DataProvider(name = "validDDLStatements")
     public Object[][] validDDLStatements() {
@@ -34,7 +34,7 @@ public class HackyDDLParserTest {
 
     @Test(dataProvider = "validDDLStatements")
     public void testValidDDLParsing(String ddl, String expectedTable, Set<String> expectedColumns) {
-        HackyDDLParser parser = HackyDDLParser.fromCreateTable(ddl);
+        HackyCreateTableParser parser = HackyCreateTableParser.fromCreateTable(ddl);
 
         Assert.assertEquals(parser.getTable(), expectedTable, "Table name should match");
         Assert.assertEquals(parser.getColumns(), expectedColumns, "db.data.Column names should match");
@@ -65,7 +65,7 @@ public class HackyDDLParserTest {
 
     @Test(dataProvider = "multiLineDDLStatements")
     public void testMultiLineDDLParsing(String ddl, String expectedTable, Set<String> expectedColumns) {
-        HackyDDLParser parser = HackyDDLParser.fromCreateTable(ddl);
+        HackyCreateTableParser parser = HackyCreateTableParser.fromCreateTable(ddl);
 
         Assert.assertEquals(parser.getTable(), expectedTable, "Table name should match");
         Assert.assertEquals(parser.getColumns(), expectedColumns, "db.data.Column names should match");
@@ -73,7 +73,7 @@ public class HackyDDLParserTest {
 
     @Test
     public void testColumnOrder() {
-        HackyDDLParser parser = HackyDDLParser.fromCreateTable("CREATE TABLE test (id integer primary key, name text, age integer, address text)");
+        HackyCreateTableParser parser = HackyCreateTableParser.fromCreateTable("CREATE TABLE test (id integer primary key, name text, age integer, address text)");
 
         Assert.assertEquals(parser.indexForColumn("id"), 0);
         Assert.assertEquals(parser.indexForColumn("name"), 1);
@@ -95,12 +95,12 @@ public class HackyDDLParserTest {
 
     @Test(dataProvider = "invalidDDLStatements", expectedExceptions = IllegalArgumentException.class)
     public void testInvalidDDLParsing(String invalidDDL) {
-        HackyDDLParser.fromCreateTable(invalidDDL);
+        HackyCreateTableParser.fromCreateTable(invalidDDL);
     }
 
     @Test
     public void testCaseInsensitiveParsing() {
-        HackyDDLParser parser = HackyDDLParser.fromCreateTable("cReAtE tAbLe TeSt (iD iNtEgEr pRiMaRy kEy, nAmE tExT)");
+        HackyCreateTableParser parser = HackyCreateTableParser.fromCreateTable("cReAtE tAbLe TeSt (iD iNtEgEr pRiMaRy kEy, nAmE tExT)");
         Assert.assertEquals(parser.getTable(), "TeSt", "Table name should preserve case");
         Assert.assertTrue(parser.getColumns().contains("iD"));
         Assert.assertTrue(parser.getColumns().contains("nAmE"));
@@ -121,7 +121,7 @@ public class HackyDDLParserTest {
 
     @Test(dataProvider = "rowIdAliasTests")
     public void testRowIdAliasDetection(String ddl, String columnName, boolean expectedIsRowId) {
-        HackyDDLParser parser = HackyDDLParser.fromCreateTable(ddl);
+        HackyCreateTableParser parser = HackyCreateTableParser.fromCreateTable(ddl);
         Assert.assertEquals(parser.isRowIdAlias(columnName), expectedIsRowId,
                 "db.data.Column '" + columnName + "' should" + (expectedIsRowId ? "" : " not") + " be aliased to rowid.");
     }

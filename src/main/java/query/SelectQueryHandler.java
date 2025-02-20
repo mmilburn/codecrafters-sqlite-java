@@ -9,7 +9,7 @@ import db.btree.cell.TableLeafCell;
 import db.data.Column;
 import db.data.ColumnType;
 import db.data.Record;
-import db.schema.HackyDDLParser;
+import db.schema.ddl.HackyCreateTableParser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +36,7 @@ public class SelectQueryHandler {
 
     public void executeSelectQuery(String command) {
         HackyQueryParser parser = HackyQueryParser.fromSQLQuery(command);
-        HackyDDLParser ddlParser = HackyDDLParser.fromCreateTable(configContext.getSQLForTable(parser.getTable()));
+        HackyCreateTableParser ddlParser = HackyCreateTableParser.fromCreateTable(configContext.getSQLForTable(parser.getTable()));
         Integer rootPage = configContext.getRootPageForTable(parser.getTable());
         BTreePage page = lazyPages.get(rootPage).get();
         List<Integer> pageIndex = List.of(rootPage);
@@ -58,7 +58,7 @@ public class SelectQueryHandler {
         }
     }
 
-    private void processRecords(List<Integer> pageIndex, HackyQueryParser parser, HackyDDLParser ddlParser) {
+    private void processRecords(List<Integer> pageIndex, HackyQueryParser parser, HackyCreateTableParser ddlParser) {
         pageIndex.forEach(index -> {
             lazyPages.get(index).get().getCells().stream()
                     .filter(cell -> cell.cellType() == CellType.TABLE_LEAF)
@@ -70,7 +70,7 @@ public class SelectQueryHandler {
 
     }
 
-    private String filterAndFormatRecord(TableLeafCell leafCell, HackyQueryParser parser, HackyDDLParser ddlParser) {
+    private String filterAndFormatRecord(TableLeafCell leafCell, HackyQueryParser parser, HackyCreateTableParser ddlParser) {
         Predicate<Record> where = createWherePredicate(parser, ddlParser);
         List<String> vals = new ArrayList<>();
         Record rec = leafCell.initialPayload();
@@ -90,7 +90,7 @@ public class SelectQueryHandler {
         return String.join("|", vals);
     }
 
-    private Predicate<Record> createWherePredicate(HackyQueryParser parser, HackyDDLParser ddlParser) {
+    private Predicate<Record> createWherePredicate(HackyQueryParser parser, HackyCreateTableParser ddlParser) {
         if (parser.getConditions().isEmpty()) {
             return rec -> true;
         }
