@@ -3,7 +3,7 @@ package db.btree;
 import config.PageHeader;
 import db.btree.cell.Cell;
 
-import java.util.List;
+import java.util.stream.Stream;
 
 public interface BTreePage {
     PageHeader getPageHeader();
@@ -12,7 +12,9 @@ public interface BTreePage {
 
     short[] getCellPointers();
 
-    List<Cell> getCells();
+    Cell getCell(Integer index);
 
     int getCellsCount();
+
+    Stream<Cell> getCellStream();
 }

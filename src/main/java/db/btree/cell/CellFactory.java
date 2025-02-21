@@ -12,7 +12,7 @@ public class CellFactory {
             case TABLE_INTERIOR -> TableInteriorCell.fromByteBuffer(data);
             case TABLE_LEAF -> TableLeafCell.fromByteBuffer(data);
             default -> {
-                throw new UnsupportedOperationException("db.btree.PageType " + pageType + " does not support cells.");
+                throw new UnsupportedOperationException("PageType " + pageType + " does not support cells.");
             }
         };
     }

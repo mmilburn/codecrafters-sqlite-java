@@ -16,7 +16,7 @@ public class TableRecord extends Record {
     public static TableRecord fromByteBuffer(ByteBuffer buffer) {
         Varint size = Varint.fromByteBuffer(buffer);
         int serialTypeListSize = size.asInt() - size.getBytesConsumed();
-        int headerEnd = buffer.position() + serialTypeListSize;
+        final int headerEnd = buffer.position() + serialTypeListSize;
         ByteBuffer headerSlice = buffer.duplicate().limit(headerEnd);
         buffer.position(headerEnd);
 
@@ -26,7 +26,7 @@ public class TableRecord extends Record {
             SerialType type = SerialType.fromByteBuffer(headerSlice);
             int currentOffset = offset[0];
             lazyCols.put(i, Memoization.memoize(() -> {
-                ByteBuffer dup = buffer.duplicate().position(buffer.position() + currentOffset);
+                ByteBuffer dup = buffer.duplicate().position(headerEnd + currentOffset);
                 return new Column(type, type.contentFromByteBuffer(dup));
             }));
             offset[0] += type.getSize();

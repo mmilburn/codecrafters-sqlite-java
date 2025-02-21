@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class SQLiteSchema {
     private Map<SchemaType, Map<String, SchemaEntry>> schemaTable = new HashMap<>();
@@ -23,8 +24,8 @@ public class SQLiteSchema {
     }
 
 
-    public static SQLiteSchema fromCellsWithCharset(List<Cell> cells, Charset encoding) {
-        Map<SchemaType, Map<String, SchemaEntry>> tables = cells.stream()
+    public static SQLiteSchema fromCellsWithCharset(Stream<Cell> cellStream, Charset encoding) {
+        Map<SchemaType, Map<String, SchemaEntry>> tables = cellStream
                 .filter(cell -> cell.cellType() == CellType.TABLE_LEAF)
                 .map(cell -> (TableLeafCell) cell)
                 .filter(leafCell -> {

@@ -43,11 +43,15 @@ public class SelectQueryHandler {
             rootPageForIndex = configContext.getRootPageForIndexedColumn(
                     queryParser.getTable(), queryParser.getConditions().getFirst().column()
             );
+            if (rootPageForIndex != -1) {
+                BTreePage indexPage = configContext.getPage(rootPageForIndex);
+                System.err.println("indexPage pageType: " + indexPage.getPageType());
+            }
         }
         BTreePage page = configContext.getPage(rootPage);
         List<Integer> pageIndex = List.of(rootPage);
         if (page.getPageType() == PageType.TABLE_INTERIOR) {
-            pageIndex = page.getCells().stream()
+            pageIndex = page.getCellStream()
                     .filter(cell -> cell.cellType() == CellType.TABLE_INTERIOR)
                     .map(cell -> ((TableInteriorCell) cell).leftChildPointer()).toList();
         }
@@ -66,7 +70,7 @@ public class SelectQueryHandler {
 
     private void processRecords(List<Integer> pageIndex, HackyQueryParser parser, HackyCreateTableParser ddlParser) {
         pageIndex.forEach(index -> {
-            configContext.getPage(index).getCells().stream()
+            configContext.getPage(index).getCellStream()
                     .filter(cell -> cell.cellType() == CellType.TABLE_LEAF)
                     .map(cell -> (TableLeafCell) cell)
                     .map(leafCell -> filterAndFormatRecord(leafCell, parser, ddlParser))

@@ -6,7 +6,7 @@ import db.btree.cell.Cell;
 import db.schema.SQLiteSchema;
 
 import java.nio.ByteBuffer;
-import java.util.List;
+import java.util.stream.Stream;
 
 public class FirstPage implements BTreePage {
     private final SQLiteHeader sqLiteHeader;
@@ -16,7 +16,7 @@ public class FirstPage implements BTreePage {
     private FirstPage(SQLiteHeader header, BTreePage delegate) {
         this.sqLiteHeader = header;
         this.delegate = delegate;
-        this.sqliteSchema = SQLiteSchema.fromCellsWithCharset(this.delegate.getCells(), this.sqLiteHeader.getCharset());
+        this.sqliteSchema = SQLiteSchema.fromCellsWithCharset(this.delegate.getCellStream(), this.sqLiteHeader.getCharset());
     }
 
     public static FirstPage fromByteBuffer(ByteBuffer data) {
@@ -45,13 +45,18 @@ public class FirstPage implements BTreePage {
     }
 
     @Override
-    public List<Cell> getCells() {
-        return this.delegate.getCells();
+    public Cell getCell(Integer index) {
+        return this.delegate.getCell(index);
     }
 
     @Override
     public int getCellsCount() {
         return this.delegate.getCellsCount();
+    }
+
+    @Override
+    public Stream<Cell> getCellStream() {
+        return delegate.getCellStream();
     }
 
     public SQLiteHeader getSqLiteHeader() {

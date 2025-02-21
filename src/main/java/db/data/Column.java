@@ -32,54 +32,72 @@ public class Column {
         if (type.isString() && value instanceof byte[] bytes) {
             return new String(bytes, encoding);
         }
-        throw new ClassCastException("db.data.Column value is not a String.");
+        throw new ClassCastException("Column value is not a String.");
     }
 
     public byte[] getAsBlob() {
         if (type.isBlob() && value instanceof byte[] bytes) {
             return bytes;
         }
-        throw new ClassCastException("db.data.Column value is not a Blob.");
+        throw new ClassCastException("Column value is not a Blob.");
     }
 
     public byte getAsByte() {
         if (value instanceof Byte b) {
             return b;
         }
-        throw new ClassCastException("db.data.Column value is not a byte.");
+        throw new ClassCastException("Column value is not a byte.");
     }
 
     public short getAsShort() {
         if (value instanceof Short s) {
             return s;
         }
-        throw new ClassCastException("db.data.Column value is not a short.");
+        throw new ClassCastException("Column value is not a short.");
     }
 
     public Integer getAsNullableInt() {
         if (value == null || type.isNull()) {
-            return null; // Return null explicitly if the value is NULL
+            return null;
         }
         if (value instanceof Integer i) {
             return i;
         }
         if (value instanceof Byte b) {
-            return (int) b; // Convert Byte to Integer safely
+            return (int) b;
         }
-        throw new ClassCastException("db.data.Column value is not an integer.");
+        throw new ClassCastException("Column value is not an integer.");
     }
 
     public long getAsLong() {
         if (value instanceof Long l) {
             return l;
         }
-        throw new ClassCastException("db.data.Column value is not a long.");
+        throw new ClassCastException("Column value is not a long.");
     }
 
     public double getAsDouble() {
         if (value instanceof Double d) {
             return d;
         }
-        throw new ClassCastException("db.data.Column value is not a double.");
+        throw new ClassCastException("Column value is not a double.");
+    }
+
+    @Override
+    public String toString() {
+        return "Column{" +
+                "type=" + type +
+                ", value=" + formatValue() +
+                '}';
+    }
+
+    private String formatValue() {
+        if (value == null) {
+            return "NULL";
+        }
+        if (value instanceof byte[]) {
+            return "BLOB(" + ((byte[]) value).length + " bytes)";
+        }
+        return value.toString();
     }
 }

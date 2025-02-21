@@ -37,7 +37,7 @@ public class HackyCreateTableParserTest {
         HackyCreateTableParser parser = HackyCreateTableParser.fromDDL(ddl);
 
         Assert.assertEquals(parser.getName(), expectedTable, "Table name should match");
-        Assert.assertEquals(parser.getColumns(), expectedColumns, "db.data.Column names should match");
+        Assert.assertEquals(parser.getColumns(), expectedColumns, "Column names should match");
     }
 
     @DataProvider(name = "multiLineDDLStatements")
@@ -68,7 +68,7 @@ public class HackyCreateTableParserTest {
         HackyCreateTableParser parser = HackyCreateTableParser.fromDDL(ddl);
 
         Assert.assertEquals(parser.getName(), expectedTable, "Table name should match");
-        Assert.assertEquals(parser.getColumns(), expectedColumns, "db.data.Column names should match");
+        Assert.assertEquals(parser.getColumns(), expectedColumns, "Column names should match");
     }
 
     @Test
@@ -123,6 +123,6 @@ public class HackyCreateTableParserTest {
     public void testRowIdAliasDetection(String ddl, String columnName, boolean expectedIsRowId) {
         HackyCreateTableParser parser = HackyCreateTableParser.fromDDL(ddl);
         Assert.assertEquals(parser.isRowIdAlias(columnName), expectedIsRowId,
-                "db.data.Column '" + columnName + "' should" + (expectedIsRowId ? "" : " not") + " be aliased to rowid.");
+                "Column '" + columnName + "' should" + (expectedIsRowId ? "" : " not") + " be aliased to rowid.");
     }
 }

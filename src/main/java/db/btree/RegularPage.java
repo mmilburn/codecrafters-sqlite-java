@@ -2,44 +2,49 @@ package db.btree;
 
 import config.PageHeader;
 import db.btree.cell.Cell;
+import db.btree.cell.CellContainer;
 import db.btree.cell.CellFactory;
+import util.Memoization;
 
 import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public class RegularPage implements BTreePage {
     private final PageHeader pageHeader;
     private final short[] cellPointers;
     //private final byte[] unallocated;
-    private final List<Cell> cells;
+    private final Map<Integer, Supplier<Cell>> cells;
     //private final byte[] reserved;
+    private final CellContainer cellContainer;
 
 
-    private RegularPage(PageHeader pageHeader, short[] cellPointers, List<Cell> cells) {
+    private RegularPage(PageHeader pageHeader, short[] cellPointers, Map<Integer, Supplier<Cell>> cells) {
         this.pageHeader = pageHeader;
         this.cellPointers = cellPointers;
         this.cells = cells;
+        this.cellContainer = new CellContainer(this.cells);
     }
 
     public static BTreePage pageFromByteBuffer(ByteBuffer data) {
         PageHeader pageHeader = PageHeader.fromByteBuffer(data);
         int cellCount = pageHeader.getCellsCount();
-        PageType pageType = pageHeader.getPageType();
+        final PageType pageType = pageHeader.getPageType();
         ShortBuffer shortBuffer = data.asShortBuffer();
-        short[] cellPointers = new short[cellCount];
+        final short[] cellPointers = new short[cellCount];
         shortBuffer.get(cellPointers, 0, cellCount);
-        List<Cell> cells = IntStream.range(0, cellPointers.length)
-                .mapToObj(i -> {
-                    short pointer = cellPointers[i];
-                    // Duplicate the buffer so we don’t change the shared buffer’s position.
-                    ByteBuffer bufferClone = data.duplicate();
-                    bufferClone.position(Short.toUnsignedInt(pointer));
-                    return CellFactory.fromByteBuffer(bufferClone, pageType);
-                })
-                .collect(Collectors.toList());
+        Map<Integer, Supplier<Cell>> cells = new HashMap<>();
+        for (int i = 0; i < cellPointers.length; i++) {
+            final int pointer = Short.toUnsignedInt(cellPointers[i]);
+            cells.put(i, Memoization.memoize(() -> {
+                ByteBuffer dup = data.duplicate();
+                dup.position(pointer);
+                return CellFactory.fromByteBuffer(dup, pageType);
+            }));
+        }
         return new RegularPage(pageHeader, cellPointers, cells);
     }
 
@@ -59,12 +64,17 @@ public class RegularPage implements BTreePage {
     }
 
     @Override
-    public List<Cell> getCells() {
-        return cells;
+    public Cell getCell(Integer index) {
+        return cells.get(index).get();
     }
 
     @Override
     public int getCellsCount() {
         return this.pageHeader.getCellsCount();
+    }
+
+    @Override
+    public Stream<Cell> getCellStream() {
+        return cellContainer.getCellStream();
     }
 }

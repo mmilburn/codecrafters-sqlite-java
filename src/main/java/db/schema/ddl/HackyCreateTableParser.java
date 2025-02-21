@@ -88,7 +88,7 @@ public final class HackyCreateTableParser implements DDLParser {
 
     @Override
     public String toString() {
-        return "db.schema.HackyDDLParser{" +
+        return "HackyDDLParser{" +
                 "table='" + table + '\'' +
                 ", colToIndex=" + colToIndex +
                 ", columnTypes=" + columnTypes +
