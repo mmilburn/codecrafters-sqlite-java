@@ -1,7 +1,8 @@
 package query;
 
-import java.util.stream.Stream;
 import db.data.Record;
+
+import java.util.stream.Stream;
 
 public interface QueryExecutor {
     Stream<Record> execute();
