@@ -70,6 +70,9 @@ public final class HackyCreateTableParser implements DDLParser {
         return table;
     }
 
+    public boolean hasColumn(String column) {
+        return colToIndex.containsKey(column);
+    }
     public Set<String> getColumns() {
         return colToIndex.keySet();
     }

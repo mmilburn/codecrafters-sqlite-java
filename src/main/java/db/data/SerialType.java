@@ -25,7 +25,7 @@ public class SerialType {
 
     private final Varint varint;
 
-    private SerialType(Varint varint) {
+    protected SerialType(Varint varint) {
         this.varint = varint;
     }
 

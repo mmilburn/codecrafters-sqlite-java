@@ -1,20 +1,26 @@
 package db.data;
 
+import util.Memoization;
+
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
-import util.Memoization;
 
 public class Record {
-    protected final Varint headerSize;
-    protected final Map<Integer, Supplier<Column>> lazyCols;
-    protected final boolean hasRowID;
+    private final Varint headerSize;
+    private final Map<Integer, Supplier<Column>> lazyCols;
+    private Varint rowId = null;
 
-    protected Record(Varint headerSize, Map<Integer, Supplier<Column>> lazyCols, boolean hasRowID) {
+    private Record(Varint headerSize, Map<Integer, Supplier<Column>> lazyCols, Varint rowId) {
         this.headerSize = headerSize;
         this.lazyCols = lazyCols;
-        this.hasRowID = hasRowID;
+        this.rowId = rowId;
+    }
+
+    private Record(Varint headerSize, Map<Integer, Supplier<Column>> lazyCols) {
+        this.headerSize = headerSize;
+        this.lazyCols = lazyCols;
     }
 
     public Column getColumnForIndex(int index) {
@@ -29,19 +35,24 @@ public class Record {
         return headerSize;
     }
 
-    public boolean hasRowID() {
-        return hasRowID;
-    }
-
     public Long getRowID() {
-        if (!hasRowID) {
-            return null;
+        if (rowId != null) {
+            return rowId.getValue();
         }
+        //this should be a record attached to an index cell.
         int rowIdIndex = this.getNumberOfColumns() - 1;
         return this.getColumnForIndex(rowIdIndex).getAsNullableLong();
     }
 
-    public static Record fromByteBuffer(ByteBuffer buffer, boolean hasRowID) {
+    public static Record fromByteBufferWithRowId(ByteBuffer buffer, Varint rowId) {
+        return parseFromByteBuffer(buffer, rowId);
+    }
+
+    public static Record fromByteBuffer(ByteBuffer buffer) {
+        return parseFromByteBuffer(buffer, null);
+    }
+
+    private static Record parseFromByteBuffer(ByteBuffer buffer, Varint rowId) {
         Varint size = Varint.fromByteBuffer(buffer);
         int serialTypeListSize = size.asInt() - size.getBytesConsumed();
         final int headerEnd = buffer.position() + serialTypeListSize;
@@ -63,6 +74,17 @@ public class Record {
             offset[0] += type.getSize();
         }
 
-        return new Record(size, lazyCols, hasRowID);
+        if (rowId != null) {
+            return new Record(size, lazyCols, rowId);
+        }
+        return new Record(size, lazyCols);
+    }
+
+    public static Record countRecord(long count) {
+        Map<Integer, Supplier<Column>> lazyCols = new HashMap<>();
+        lazyCols.put(0, Memoization.memoize(() -> new Column(new SerialType(Varint.fromValue(6)), count)));
+        //DIRTY HACKS!!
+        //Just to support COUNT(*)
+        return new Record(Varint.fromValue(2), lazyCols);
     }
 }

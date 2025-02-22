@@ -18,7 +18,9 @@ public class Main {
         String command = args[1];
         ConfigContext configContext = new ConfigContext(getByteBufferFromFile(databaseFilePath));
         if (command.toLowerCase().startsWith("select ")) {
-            new SelectQueryHandler(configContext).executeSelectQuery(command);
+            //new SelectQueryHandler(configContext).executeSelectQuery(command);
+            SelectQueryHandler handler = new SelectQueryHandler(configContext);
+            handler.executeSelectQuery(command);
         } else {
             switch (command) {
                 case ".dbinfo" -> {
