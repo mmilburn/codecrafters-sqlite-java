@@ -17,13 +17,8 @@ public class IndexRecord extends Record {
 
     public static IndexRecord fromByteBuffer(ByteBuffer buffer) {
         Varint size = Varint.fromByteBuffer(buffer);
-        System.err.println("Record size: " + size.getValue());
         int serialTypeListSize = size.asInt() - size.getBytesConsumed();
-        System.err.println("Serial Type list size: " + serialTypeListSize);
-        System.err.println("Buffer position: " + buffer.position());
-        System.err.println("Buffer limit: " + buffer.limit());
         final int headerEnd = buffer.position() + serialTypeListSize;
-        System.err.println("headerEnd: " + headerEnd);
         ByteBuffer headerSlice = buffer.duplicate().limit(headerEnd);
 
         Map<Integer, Supplier<Column>> lazyCols = new HashMap<>();
@@ -35,7 +30,6 @@ public class IndexRecord extends Record {
 
             lazyCols.put(i, Memoization.memoize(() -> {
                 ByteBuffer dup = buffer.duplicate().position(headerEnd + currentOffset);
-                System.err.println("Position reading column data: " + dup.position());
                 return new Column(type, type.contentFromByteBuffer(dup));
             }));
 
@@ -45,7 +39,6 @@ public class IndexRecord extends Record {
         // Ensure endOfCols is within buffer limits
         int endOfCols = headerEnd + offset[0];
         if (endOfCols >= buffer.limit()) {
-            System.err.println("Warning: endOfCols exceeds buffer limit! Defaulting rowID to -1.");
             return new IndexRecord(size, lazyCols, Varint.fromValue(-1));
         }
 

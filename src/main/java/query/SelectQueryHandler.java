@@ -10,9 +10,13 @@ import db.data.Column;
 import db.data.ColumnType;
 import db.data.TableRecord;
 import db.schema.ddl.HackyCreateTableParser;
+import db.search.IndexSearch;
+import db.search.TableSearch;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.PriorityQueue;
 import java.util.function.Predicate;
 
 public class SelectQueryHandler {
@@ -37,19 +41,28 @@ public class SelectQueryHandler {
             System.err.println("Couldn't get table parser for: " + queryParser.getTable());
             return;
         }
-        Integer rootPage = configContext.getRootPageForTable(queryParser.getTable());
+        Integer tableRootPage = configContext.getRootPageForTable(queryParser.getTable());
         Integer rootPageForIndex = -1;
         if (!queryParser.getConditions().isEmpty()) {
-            rootPageForIndex = configContext.getRootPageForIndexedColumn(
-                    queryParser.getTable(), queryParser.getConditions().getFirst().column()
-            );
+            Condition whereCondition = queryParser.getConditions().getFirst();
+            String columnName = whereCondition.column();
+            Column columnValue = Column.fromString(configContext.getCharset(), whereCondition.value());
+            ColumnType type = ddlParser.getColumnType(columnName);
+            rootPageForIndex = configContext.getRootPageForIndexedColumn(queryParser.getTable(), columnName);
+
             if (rootPageForIndex != -1) {
                 BTreePage indexPage = configContext.getPage(rootPageForIndex);
-                System.err.println("indexPage pageType: " + indexPage.getPageType());
+                PriorityQueue<Long> rowIds = IndexSearch.searchFromRootPage(configContext, indexPage, columnValue);
+                rowIds.stream()
+                        .map(rowId -> TableSearch.searchFromRootPage(configContext, configContext.getPage(tableRootPage), rowId))
+                        .filter(Objects::nonNull)
+                        .map(leafCell -> String.join("|", getRowVals(leafCell, queryParser, ddlParser)))
+                        .filter(str -> !str.isEmpty())
+                        .forEach(System.out::println);
             }
         }
-        BTreePage page = configContext.getPage(rootPage);
-        List<Integer> pageIndex = List.of(rootPage);
+        BTreePage page = configContext.getPage(tableRootPage);
+        List<Integer> pageIndex = List.of(tableRootPage);
         if (page.getPageType() == PageType.TABLE_INTERIOR) {
             pageIndex = page.getCellStream()
                     .filter(cell -> cell.cellType() == CellType.TABLE_INTERIOR)
@@ -80,22 +93,30 @@ public class SelectQueryHandler {
 
     }
 
+    private List<String> getRowVals(TableLeafCell leafCell, HackyQueryParser parser, HackyCreateTableParser ddlParser) {
+        List<String> vals = new ArrayList<>();
+        TableRecord rec = leafCell.initialPayload();
+
+        for (String colName : parser.getColsOrFuncs()) {
+            if (ddlParser.isRowIdAlias(colName)) {
+                vals.add(String.valueOf(leafCell.rowID().getValue()));
+            } else {
+                int index = ddlParser.ordinalForColumn(colName);
+                ColumnType type = ddlParser.getColumnType(colName);
+                Column col = rec.getColumnForIndex(index);
+                vals.add(String.valueOf(col.getValueAs(type, configContext.getCharset())));
+            }
+        }
+        return vals;
+    }
+
     private String filterAndFormatRecord(TableLeafCell leafCell, HackyQueryParser parser, HackyCreateTableParser ddlParser) {
         Predicate<TableRecord> where = createWherePredicate(parser, ddlParser);
         List<String> vals = new ArrayList<>();
         TableRecord rec = leafCell.initialPayload();
 
         if (where.test(rec)) {
-            for (String colName : parser.getColsOrFuncs()) {
-                if (ddlParser.isRowIdAlias(colName)) {
-                    vals.add(String.valueOf(leafCell.rowID().getValue()));
-                } else {
-                    int index = ddlParser.ordinalForColumn(colName);
-                    ColumnType type = ddlParser.getColumnType(colName);
-                    Column col = rec.getColumnForIndex(index);
-                    vals.add(String.valueOf(col.getValueAs(type, configContext.getCharset())));
-                }
-            }
+            vals = getRowVals(leafCell, parser, ddlParser);
         }
         return String.join("|", vals);
     }

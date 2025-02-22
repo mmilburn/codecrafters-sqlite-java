@@ -12,12 +12,19 @@ public class Column {
         this.value = value;
     }
 
+    public static Column fromString(Charset charset, String val) {
+        return new Column(SerialType.fromStringLength(val.length()), val.getBytes(charset));
+    }
+
     public SerialType getType() {
         return type;
     }
 
     public Object getValueAs(ColumnType columnType, Charset encoding) {
         if (type.isNull()) {
+            if (columnType == ColumnType.TEXT || columnType == ColumnType.VARCHAR) {
+                return "NULL";
+            }
             return null;
         }
         try {
@@ -60,20 +67,27 @@ public class Column {
         if (value == null || type.isNull()) {
             return null;
         }
-        if (value instanceof Integer i) {
-            return i;
-        }
-        if (value instanceof Byte b) {
-            return (int) b;
-        }
-        throw new ClassCastException("Column value is not an integer.");
+        return switch (value) {
+            case Integer i -> i;
+            case Short s -> (int) s;
+            case Byte b -> (int) b;
+            default -> throw new ClassCastException("Column value: " + value + " is a " + value.getClass() +
+                    " not an integer.");
+        };
     }
 
-    public long getAsLong() {
-        if (value instanceof Long l) {
-            return l;
+    public Long getAsNullableLong() {
+        if (value == null || type.isNull()) {
+            return null;
         }
-        throw new ClassCastException("Column value is not a long.");
+        return switch (value) {
+            case Integer i -> (long) i;
+            case Byte b -> (long) b;
+            case Short s -> (long) s;
+            case Long l -> l;
+            default ->
+                    throw new ClassCastException("Column value: " + value + " is a " + value.getClass() + " not a long.");
+        };
     }
 
     public double getAsDouble() {
@@ -95,8 +109,11 @@ public class Column {
         if (value == null) {
             return "NULL";
         }
-        if (value instanceof byte[]) {
+        if (type.isBlob()) {
             return "BLOB(" + ((byte[]) value).length + " bytes)";
+        }
+        if (type.isString()) {
+            return new String((byte[]) value);
         }
         return value.toString();
     }

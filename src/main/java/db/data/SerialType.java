@@ -34,6 +34,10 @@ public class SerialType {
         return new SerialType(varint);
     }
 
+    public static SerialType fromStringLength(int length) {
+        return new SerialType(Varint.fromValue(13 + (length * 2L)));
+    }
+
     public int getSize() {
         long val = varint.getValue();
         if (val > 11) {

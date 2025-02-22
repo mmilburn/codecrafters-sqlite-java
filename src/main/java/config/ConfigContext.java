@@ -84,4 +84,8 @@ public class ConfigContext {
     public BTreePage getPage(Integer index) {
         return lazyPages.get(index).get();
     }
+
+    public boolean hasPage(Integer index) {
+        return lazyPages.containsKey(index);
+    }
 }
