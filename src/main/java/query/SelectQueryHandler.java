@@ -10,8 +10,7 @@ import db.data.Column;
 import db.data.ColumnType;
 import db.data.Record;
 import db.schema.ddl.HackyCreateTableParser;
-import db.search.IndexSearch;
-import db.search.TableSearch;
+import db.search.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +41,7 @@ public class SelectQueryHandler {
             return;
         }
         Integer tableRootPage = configContext.getRootPageForTable(queryParser.getTable());
+        BTreePage tablePage = configContext.getPage(tableRootPage);
         Integer rootPageForIndex = -1;
         if (!queryParser.getConditions().isEmpty()) {
             Condition whereCondition = queryParser.getConditions().getFirst();
@@ -52,19 +52,21 @@ public class SelectQueryHandler {
 
             if (rootPageForIndex != -1) {
                 BTreePage indexPage = configContext.getPage(rootPageForIndex);
-                PriorityQueue<Long> rowIds = IndexSearch.searchFromRootPage(configContext, indexPage, columnValue);
+                IndexSearchImpl indexSearch = new IndexSearchImpl(configContext);
+                TableSearchImpl tableSearch = new TableSearchImpl(configContext);
+
+                PriorityQueue<Long> rowIds = indexSearch.search(indexPage, new IndexSearchKey(columnValue, configContext));
                 rowIds.stream()
-                        .map(rowId -> TableSearch.searchFromRootPage(configContext, configContext.getPage(tableRootPage), rowId))
+                        .map(rowId -> tableSearch.search(tablePage, new RowIdSearchKey(rowId)))
                         .filter(Objects::nonNull)
                         .map(leafCell -> String.join("|", getRowVals(leafCell, queryParser, ddlParser)))
                         .filter(str -> !str.isEmpty())
                         .forEach(System.out::println);
             }
         }
-        BTreePage page = configContext.getPage(tableRootPage);
         List<Integer> pageIndex = List.of(tableRootPage);
-        if (page.getPageType() == PageType.TABLE_INTERIOR) {
-            pageIndex = page.getCellStream()
+        if (tablePage.getPageType() == PageType.TABLE_INTERIOR) {
+            pageIndex = tablePage.getCellStream()
                     .filter(cell -> cell.cellType() == CellType.TABLE_INTERIOR)
                     .map(cell -> ((TableInteriorCell) cell).leftChildPointer()).toList();
         }
