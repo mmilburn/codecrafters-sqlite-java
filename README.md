@@ -1,77 +1,28 @@
-[![progress-banner](https://backend.codecrafters.io/progress/sqlite/236541db-1d65-435f-9bd3-355514bdc778)](https://app.codecrafters.io/users/codecrafters-bot?r=2qF)
+# About the Project
 
-This is a starting point for Java solutions to the
+This is a finished Java implementation for the
 ["Build Your Own SQLite" Challenge](https://codecrafters.io/challenges/sqlite).
+This code implements functionality for all stages (and extentions) of the challenge as of 2025-02-22.
 
-In this challenge, you'll build a barebones SQLite implementation that supports
-basic SQL queries like `SELECT`. Along the way we'll learn about
-[SQLite's file format](https://www.sqlite.org/fileformat.html), how indexed data
-is
-[stored in B-trees](https://jvns.ca/blog/2014/10/02/how-does-sqlite-work-part-2-btrees/)
-and more.
+## What can it do?
 
-**Note**: If you're viewing this repo on GitHub, head over to
-[codecrafters.io](https://codecrafters.io) to try the challenge.
+1. Print the page size and number of tables in a sqlite3 database via the `.dbinfo` command.
+2. Print the names of tables in a sqlite3 database via `.tables`.
+3. Do a simple `COUNT(*)` operation (`./your_program.sh sample.db "select count(*) from apples"`).
+4. Read data from a single column (`./your_program.sh sample.db "SELECT name FROM apples"`).
+5. Read data from multiple columns (`./your_program.sh sample.db "SELECT name, color FROM apples"`).
+6. Filter data with a `WHERE` clause (only supports `=` operator and only compares against `TEXT` or `VARCHAR` columns
+   `./your_program.sh sample.db "SELECT name, color FROM apples WHERE color = 'Yellow'"`).
+7. Retrieve data with a full-table scan (
+   `./your_program.sh superheroes.db "SELECT id, name FROM superheroes WHERE eye_color = 'Pink Eyes'"`).
+8. Retrieve data using an index (
+   `./your_program.sh companies.db "SELECT id, name FROM companies WHERE country = 'eritrea'"`).
 
-# Passing the first stage
+# Improvements
 
-The entry point for your SQLite implementation is in `src/main/java/Main.java`.
-Study and uncomment the relevant code, and push your changes to pass the first
-stage:
+* Add more restrictive access modifiers and rearrange packages to enable that.
+* Handle `COUNT(*)` more gracefully in the `query` package.
 
-```sh
-git commit -am "pass 1st stage" # any msg
-git push origin master
-```
+# Test Run Video
 
-Time to move on to the next stage!
-
-# Stage 2 & beyond
-
-Note: This section is for stages 2 and beyond.
-
-1. Ensure you have `mvn` installed locally
-1. Run `./your_program.sh` to run your program, which is implemented in
-   `src/main/java/Main.java`.
-1. Commit your changes and run `git push origin master` to submit your solution
-   to CodeCrafters. Test output will be streamed to your terminal.
-
-# Sample Databases
-
-To make it easy to test queries locally, we've added a sample database in the
-root of this repository: `sample.db`.
-
-This contains two tables: `apples` & `oranges`. You can use this to test your
-implementation for the first 6 stages.
-
-You can explore this database by running queries against it like this:
-
-```sh
-$ sqlite3 sample.db "select id, name from apples"
-1|Granny Smith
-2|Fuji
-3|Honeycrisp
-4|Golden Delicious
-```
-
-There are two other databases that you can use:
-
-1. `superheroes.db`:
-   - This is a small version of the test database used in the table-scan stage.
-   - It contains one table: `superheroes`.
-   - It is ~1MB in size.
-1. `companies.db`:
-   - This is a small version of the test database used in the index-scan stage.
-   - It contains one table: `companies`, and one index: `idx_companies_country`
-   - It is ~7MB in size.
-
-These aren't included in the repository because they're large in size. You can
-download them by running this script:
-
-```sh
-./download_sample_databases.sh
-```
-
-If the script doesn't work for some reason, you can download the databases
-directly from
-[codecrafters-io/sample-sqlite-databases](https://github.com/codecrafters-io/sample-sqlite-databases).
+A short video of the code being run in the codecrafters test environment:
