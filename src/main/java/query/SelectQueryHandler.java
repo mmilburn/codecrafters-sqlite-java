@@ -8,7 +8,7 @@ import db.btree.cell.TableInteriorCell;
 import db.btree.cell.TableLeafCell;
 import db.data.Column;
 import db.data.ColumnType;
-import db.data.TableRecord;
+import db.data.Record;
 import db.schema.ddl.HackyCreateTableParser;
 import db.search.IndexSearch;
 import db.search.TableSearch;
@@ -95,7 +95,7 @@ public class SelectQueryHandler {
 
     private List<String> getRowVals(TableLeafCell leafCell, HackyQueryParser parser, HackyCreateTableParser ddlParser) {
         List<String> vals = new ArrayList<>();
-        TableRecord rec = leafCell.initialPayload();
+        Record rec = leafCell.initialPayload();
 
         for (String colName : parser.getColsOrFuncs()) {
             if (ddlParser.isRowIdAlias(colName)) {
@@ -111,9 +111,9 @@ public class SelectQueryHandler {
     }
 
     private String filterAndFormatRecord(TableLeafCell leafCell, HackyQueryParser parser, HackyCreateTableParser ddlParser) {
-        Predicate<TableRecord> where = createWherePredicate(parser, ddlParser);
+        Predicate<Record> where = createWherePredicate(parser, ddlParser);
         List<String> vals = new ArrayList<>();
-        TableRecord rec = leafCell.initialPayload();
+        Record rec = leafCell.initialPayload();
 
         if (where.test(rec)) {
             vals = getRowVals(leafCell, parser, ddlParser);
@@ -121,7 +121,7 @@ public class SelectQueryHandler {
         return String.join("|", vals);
     }
 
-    private Predicate<TableRecord> createWherePredicate(HackyQueryParser parser, HackyCreateTableParser ddlParser) {
+    private Predicate<Record> createWherePredicate(HackyQueryParser parser, HackyCreateTableParser ddlParser) {
         if (parser.getConditions().isEmpty()) {
             return rec -> true;
         }

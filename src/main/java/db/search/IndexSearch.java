@@ -7,7 +7,7 @@ import db.btree.cell.Cell;
 import db.btree.cell.IndexInteriorCell;
 import db.btree.cell.IndexLeafCell;
 import db.data.Column;
-import db.data.IndexRecord;
+import db.data.Record;
 
 import java.nio.charset.Charset;
 import java.util.HashSet;
@@ -34,7 +34,7 @@ public class IndexSearch {
                 Cell midCell = currentPage.getCell(mid);
 
                 if (midCell instanceof IndexInteriorCell interiorCell) {
-                    IndexRecord record = interiorCell.initialPayload();
+                    Record record = interiorCell.initialPayload();
                     Column midKey = record.getColumnForIndex(0);
                     int cmp = compareKeys(charset, searchKey, midKey);
                     if (cmp == 0) {
@@ -79,7 +79,7 @@ public class IndexSearch {
             int mid = left + (right - left) / 2;
             Cell midCell = page.getCell(mid);
             if (midCell instanceof IndexLeafCell leafCell) {
-                IndexRecord record = leafCell.initialPayload();
+                Record record = leafCell.initialPayload();
                 Column midKey = record.getColumnForIndex(0);
 
                 int cmp = compareKeys(charset, searchKey, midKey);
@@ -101,10 +101,10 @@ public class IndexSearch {
         for (int i = foundIndex; i >= 0; i--) {
             Cell cell = page.getCell(i);
             if (cell instanceof IndexLeafCell leafCell) {
-                IndexRecord record = leafCell.initialPayload();
+                Record record = leafCell.initialPayload();
                 Column key = record.getColumnForIndex(0);
                 if (compareKeys(charset, searchKey, key) == 0) {
-                    long rowId = record.getColumnForIndex(1).getAsNullableLong();
+                    long rowId = record.getRowID();
                     if (seenRows.add(rowId)) {
                         matchingRows.add(rowId);
                     }
@@ -117,11 +117,11 @@ public class IndexSearch {
         for (int i = foundIndex + 1; i < count; i++) {
             Cell cell = page.getCell(i);
             if (cell instanceof IndexLeafCell leafCell) {
-                IndexRecord record = leafCell.initialPayload();
+                Record record = leafCell.initialPayload();
                 int index = record.getNumberOfColumns() - 1;
                 Column key = record.getColumnForIndex(0);
                 if (compareKeys(charset, searchKey, key) == 0) {
-                    long rowId = record.getColumnForIndex(index).getAsNullableLong();
+                    long rowId = record.getRowID();
                     if (seenRows.add(rowId)) {
                         matchingRows.add(rowId);
                     }
