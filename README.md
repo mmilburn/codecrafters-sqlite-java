@@ -15,8 +15,8 @@ This code implements functionality for all stages (and extentions) of the challe
    `./your_program.sh sample.db "SELECT name, color FROM apples WHERE color = 'Yellow'"`).
 7. Retrieve data with a full-table scan (
    `./your_program.sh superheroes.db "SELECT id, name FROM superheroes WHERE eye_color = 'Pink Eyes'"`).
-8. Retrieve data using an index (
-   `./your_program.sh companies.db "SELECT id, name FROM companies WHERE country = 'eritrea'"`).
+8. Retrieve data using an index (given the index exists for the table and the query is checking for equality between a
+   string and a single indexed column).
 
 # Improvements
 
