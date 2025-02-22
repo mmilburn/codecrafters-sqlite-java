@@ -26,3 +26,5 @@ This code implements functionality for all stages (and extentions) of the challe
 # Test Run Video
 
 A short video of the code being run in the codecrafters test environment:
+
+https://github.com/user-attachments/assets/0458b0f4-c5d0-43b1-9ce8-cdf2f0ee7c6d
