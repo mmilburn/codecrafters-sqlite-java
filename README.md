@@ -16,7 +16,16 @@ This code implements functionality for all stages (and extentions) of the challe
 7. Retrieve data with a full-table scan (
    `./your_program.sh superheroes.db "SELECT id, name FROM superheroes WHERE eye_color = 'Pink Eyes'"`).
 8. Retrieve data using an index (given the index exists for the table and the query is checking for equality between a
-   string and a single indexed column).
+   string and a single indexed column of type `TEXT` or `VARCHAR`).
+
+# Running Locally
+
+You will need Java 23 (or later) and maven installed to run this code. The program can then be run with:
+
+`./your_program.sh sample.db <command>`
+
+Note that not all functionality can be demonstrated with the included `sample.db` (there is no index defined on any
+table).
 
 # Improvements
 
