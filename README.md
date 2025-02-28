@@ -18,7 +18,7 @@ This code implements functionality for all stages (and extentions) of the challe
 8. Retrieve data using an index (given the index exists for the table and the query is checking for equality between a
    string and a single indexed column of type `TEXT` or `VARCHAR`).
 
-# Running Locally
+## Running Locally
 
 You will need Java 23 (or later) and maven installed to run this code. The program can then be run with:
 
@@ -27,12 +27,12 @@ You will need Java 23 (or later) and maven installed to run this code. The progr
 Note that not all functionality can be demonstrated with the included `sample.db` (there is no index defined on any
 table).
 
-# Improvements
+## Improvements
 
 * Add more restrictive access modifiers and rearrange packages to enable that.
 * Handle `COUNT(*)` more gracefully in the `query` package.
 
-# Test Run Video
+## Test Run Video
 
 A short video of the code being run in the codecrafters test environment:
 
